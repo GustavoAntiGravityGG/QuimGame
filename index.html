@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mesa de fusão — Química</title>
+<title>Mesa de fusão — Química | Beta</title>
 <style>
 :root{--bg:#f1f4f2;--pn:#fff;--ink:#17231f;--mute:#667873;--ln:#d3dcd8;--ac:#0a8c76;--it:#fff}
 :root[data-theme=dark]{--bg:#0b1312;--pn:#111c1a;--ink:#dcebe7;--mute:#88a09a;--ln:#21342f;--ac:#3fdcbc;--it:#172623}
@@ -59,9 +59,34 @@ input[type=range]{width:100%;accent-color:var(--ac)}
 dialog{width:min(360px,92vw);padding:20px;border:1px solid var(--ln);border-radius:14px;background:var(--pn);color:var(--ink)}
 dialog::backdrop{background:#0009}
 dialog p{margin:0 0 12px}
-#zi{width:100%;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);outline:0}
+#zi,#ads{width:100%;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);outline:0}
 .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-@media(max-width:720px){h1{display:none}body{flex-direction:column}#painel{flex:0 0 40%;border-left:0;border-top:1px solid var(--ln)}}
+/* Área do administrador: descobertas e crafting */
+#adm{width:min(680px,94vw)}
+#adp{max-width:340px;margin:0 auto}
+#ade{min-height:1.2em;margin:8px 0 0;color:#d9483b;font-size:13px}
+#abas{display:flex;gap:6px;margin-bottom:10px}
+#abas .on{border-color:var(--ac);color:var(--ac);font-weight:600}
+#adt{color:var(--mute);font-size:13px}
+#adg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+#acr{display:grid;gap:8px}
+#adg,#acr{max-height:56vh;overflow:auto;padding:2px}
+#adg[hidden],#acr[hidden]{display:none}
+.dc,.cr{padding:8px 10px;border:1px solid var(--ln);border-radius:10px}
+.dc{text-align:center}
+.dc .s{font-size:22px}
+.cr small{font:13px Georgia,"Times New Roman",serif}
+.ok{border-color:#1f9d55;background:color-mix(in srgb,#1f9d55 18%,transparent)}
+.bl{opacity:.55;filter:grayscale(1)}
+/* Equação da reação e destaque de descoberta nova */
+#eqn{position:absolute;left:50%;bottom:64px;transform:translate(-50%,16px);max-width:92%;padding:12px 20px;text-align:center;border:1px solid var(--ln);border-radius:14px;background:var(--pn);box-shadow:0 8px 24px #0003;opacity:0;pointer-events:none;transition:.35s;z-index:99998}
+#eqn.on{opacity:1;transform:translate(-50%,0)}
+#eqn span{display:block;font:700 21px Georgia,"Times New Roman",serif}
+#eqn.nv{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent),0 8px 24px #0003}
+#eqn.nv small{color:var(--ac);font-weight:600}
+.nova{border-color:var(--ac);animation:pop .55s cubic-bezier(.2,1.5,.4,1),glow 2.4s}
+@keyframes glow{0%,70%{box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 45%,transparent),0 0 28px var(--ac)}}
+@media(max-width:720px){h1,.tx{display:none}#barra{flex-wrap:wrap}body{flex-direction:column}#painel{flex:0 0 40%;border-left:0;border-top:1px solid var(--ln)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -71,6 +96,8 @@ dialog p{margin:0 0 12px}
   <div id="barra">
     <h1>Mesa de fusão</h1>
     <button class="bt" id="limpar">Limpar mesa</button>
+    <button class="bt" id="desc" aria-label="Descobertas (administrador)">🔒<span class="tx"> Descobertas</span></button>
+    <button class="bt" id="craf" aria-label="Crafting (administrador)">📖<span class="tx"> Crafting</span></button>
     <button class="bt" id="cfg" aria-label="Configurações" aria-expanded="false" title="Configurações">⚙️</button>
     <button class="bt" id="tema" aria-label="Alternar tema claro/escuro"></button>
     <div id="menu" hidden>
@@ -80,6 +107,7 @@ dialog p{margin:0 0 12px}
   </div>
   <p id="dica">Arraste elementos do painel e solte um sobre o outro para reagir.<br>Clique direito (ou arraste para fora) para remover.</p>
   <div id="aviso" role="status"></div>
+  <div id="eqn" role="status"></div>
 </main>
 <aside id="painel">
   <div id="topo">
@@ -95,6 +123,22 @@ dialog p{margin:0 0 12px}
   <div class="acoes"><button class="bt" id="zno">Cancelar</button><button class="bt perigo" id="zok"></button></div>
 </dialog>
 
+<dialog id="adm">
+  <div id="adp">
+    <p><b>🔒 Área do administrador</b><br>Digite a senha para ver as descobertas e o crafting.</p>
+    <input id="ads" type="password" placeholder="Senha" autocomplete="off" aria-label="Senha do administrador">
+    <p id="ade"></p>
+    <div class="acoes"><button class="bt" id="adx">Cancelar</button><button class="bt" id="adok">Entrar</button></div>
+  </div>
+  <div id="adv" hidden>
+    <div id="abas"><button class="bt" data-t="d">Descobertas</button><button class="bt" data-t="c">Crafting</button></div>
+    <p id="adt"></p>
+    <div id="adg"></div>
+    <div id="acr" hidden></div>
+    <div class="acoes"><button class="bt" id="adf">Fechar</button></div>
+  </div>
+</dialog>
+
 <script>
 // ===================== DADOS (edite aqui) =====================
 // Elementos: "número símbolo nome" — 1 a 56 e 74 a 83 (66 elementos).
@@ -107,31 +151,149 @@ const ELEMENTOS=`1 H Hidrogênio|2 He Hélio|3 Li Lítio|4 Be Berílio|5 B Boro|
 49 In Índio|50 Sn Estanho|51 Sb Antimônio|52 Te Telúrio|53 I Iodo|54 Xe Xenônio|55 Cs Césio|56 Ba Bário
 74 W Tungstênio|75 Re Rênio|76 Os Ósmio|77 Ir Irídio|78 Pt Platina|79 Au Ouro|80 Hg Mercúrio|81 Tl Tálio|82 Pb Chumbo|83 Bi Bismuto`;
 
-// Receitas: "A+B=id|Nome|Fórmula|Emoji". A e B são símbolos de elementos ou ids de compostos.
-// Se a linha não tiver "|dados", reaproveita um composto já definido (caminho alternativo).
-const RECEITAS=`H+O=agua|Água|H₂O|💧
-Na+Cl=sal|Sal de cozinha|NaCl|🧂
-H+Cl=hcl|Ácido clorídrico|HCl|🧪
-H+H=h2|Gás hidrogênio|H₂|🎈
-O+O=o2|Gás oxigênio|O₂|🫧
-N+N=n2|Gás nitrogênio|N₂|💨
-Cl+Cl=cl2|Gás cloro|Cl₂|🟢
-H+N=nh3|Amônia|NH₃|🧴
-C+O=co|Monóxido de carbono|CO|☁️
-co+O=co2|Dióxido de carbono|CO₂|🌫️
-C+o2=co2
-C+H=ch4|Metano|CH₄|🔥
-O+S=so2|Dióxido de enxofre|SO₂|🌋
-o2+so2=so3|Trióxido de enxofre|SO₃|🟨
+// Receitas: "A+B=id|Nome|Fórmula|Emoji|Equação opcional". A e B são símbolos de elementos ou ids de compostos
+// (a ordem não importa). Átomos de H, O, N, F, Cl, Br e I formam primeiro a molécula X₂ (H+H=h2) e as reações usam X₂.
+// Sem "Equação", ela é balanceada automaticamente; use a equação explícita quando houver subprodutos.
+// Linha sem Nome/Fórmula/Emoji (id||||equação) = caminho alternativo para um composto já definido.
+const RECEITAS=`H+H=h2|Gás hidrogênio|H₂|🎈|2H → H₂
+O+O=o2|Gás oxigênio|O₂|🫧|2O → O₂
+N+N=n2|Gás nitrogênio|N₂|💨|2N → N₂
+F+F=f2|Gás flúor|F₂|🟡|2F → F₂
+Cl+Cl=cl2|Gás cloro|Cl₂|🟢|2Cl → Cl₂
+Br+Br=br2|Bromo líquido|Br₂|🟤|2Br → Br₂
+I+I=i2|Iodo sólido|I₂|🟣|2I → I₂
+O+o2=o3|Ozônio|O₃|🌐|3O₂ → 2O₃
+h2+O=agua|Água|H₂O|💧
+h2+o2=h2o2|Água oxigenada|H₂O₂|🩹
+h2+n2=nh3|Amônia|NH₃|🧴
+h2+cl2=hcl|Ácido clorídrico|HCl|🧪
+h2+f2=hf|Ácido fluorídrico|HF|🫗
+h2+br2=hbr|Ácido bromídrico|HBr|🟠
+h2+i2=hi|Ácido iodídrico|HI|🔮
+C+h2=ch4|Metano|CH₄|🔥
+h2+S=h2s|Gás sulfídrico|H₂S|🥚
+h2+Hg=h2hg|Hidreto de mercúrio (H₂Hg)|H₂Hg|🌡️
+h2+Li=lih|Hidreto de lítio|LiH|🔋
+h2+Na=nah|Hidreto de sódio|NaH|⚪
+h2+Ca=cah2|Hidreto de cálcio|CaH₂|🏔️
+C+o2=co2|Dióxido de carbono|CO₂|🌫️
+C+co2=co|Monóxido de carbono|CO|☁️
+co+o2=co2
+S+o2=so2|Dióxido de enxofre|SO₂|🌋
+so2+o2=so3|Trióxido de enxofre|SO₃|🟨
+n2+o2=no|Óxido nítrico|NO|🟠
+no+o2=no2|Dióxido de nitrogênio|NO₂|🟤
+Ca+o2=cao|Cal virgem|CaO|🪨
+Mg+o2=mgo|Óxido de magnésio|MgO|✨
+Fe+o2=ferrugem|Ferrugem|Fe₂O₃|🟫
+Al+o2=alumina|Alumina|Al₂O₃|💎
+Si+o2=silica|Sílica|SiO₂|🏖️
+Zn+o2=zno|Óxido de zinco|ZnO|☀️
+Ti+o2=tio2|Dióxido de titânio|TiO₂|🤍
+Cu+o2=cuo|Óxido de cobre|CuO|⚫
+Cr+o2=cr2o3|Verde de cromo|Cr₂O₃|🌿
+Mn+o2=mno2|Dióxido de manganês|MnO₂|🔋
+P+o2=p2o5|Pentóxido de fósforo|P₄O₁₀|⬜
+Zr+o2=zro2|Zircônia|ZrO₂|💠
+Co+o2=coo|Óxido de cobalto|CoO|🔹
+Ni+o2=nio|Óxido de níquel|NiO|🟩
+Na+o2=na2o|Óxido de sódio|Na₂O|🔆
+K+o2=k2o|Óxido de potássio|K₂O|🌱
+Li+o2=li2o|Óxido de lítio|Li₂O|🪫
+Ba+o2=bao|Óxido de bário|BaO|🎇
+B+o2=b2o3|Óxido de boro|B₂O₃|🔶
+V+o2=v2o5|Pentóxido de vanádio|V₂O₅|🟧
+W+o2=wo3|Trióxido de tungstênio|WO₃|🟡
+Pb+o2=pbo|Óxido de chumbo|PbO|🟥
+Sn+o2=sno2|Dióxido de estanho|SnO₂|🥫
+Hg+o2=hgo|Óxido de mercúrio|HgO|🔴
+Bi+o2=bi2o3|Óxido de bismuto|Bi₂O₃|🌤️
 agua+so3=h2so4|Ácido sulfúrico|H₂SO₄|⚗️
-H+S=h2s|Gás sulfídrico|H₂S|🥚
-Na+agua=naoh|Soda cáustica|NaOH|🧼
-hcl+naoh=sal
-Ca+O=cao|Cal virgem|CaO|🪨
+agua+so2=h2so3|Ácido sulfuroso|H₂SO₃|🌧️
+agua+co2=h2co3|Ácido carbônico|H₂CO₃|🥂
+agua+no2=hno3|Ácido nítrico|HNO₃|🧫|3NO₂ + H₂O → 2HNO₃ + NO
+agua+p2o5=h3po4|Ácido fosfórico|H₃PO₄|🥤
+agua+b2o3=h3bo3|Ácido bórico|H₃BO₃|👁️
+agua+wo3=h2wo4|Ácido túngstico|H₂WO₄|🔦
+Na+agua=naoh|Soda cáustica|NaOH|🧼|2Na + 2H₂O → 2NaOH + H₂
+K+agua=koh|Hidróxido de potássio|KOH|🧽|2K + 2H₂O → 2KOH + H₂
+Li+agua=lioh|Hidróxido de lítio|LiOH|🚀|2Li + 2H₂O → 2LiOH + H₂
+Ba+agua=baoh2|Hidróxido de bário|Ba(OH)₂|🧂|Ba + 2H₂O → Ba(OH)₂ + H₂
 agua+cao=caoh2|Cal hidratada|Ca(OH)₂|🏗️
+agua+mgo=mgoh2|Leite de magnésia|Mg(OH)₂|🥛
+agua+na2o=naoh
+agua+k2o=koh
+agua+bao=baoh2
+agua+nh3=nh4oh|Hidróxido de amônio|NH₄OH|🧹
+Na+cl2=sal|Sal de cozinha|NaCl|🧂
+hcl+naoh=sal||||HCl + NaOH → NaCl + H₂O
+K+cl2=kcl|Cloreto de potássio|KCl|🍌
+Ca+cl2=cacl2|Cloreto de cálcio|CaCl₂|❄️
+Mg+cl2=mgcl2|Cloreto de magnésio|MgCl₂|🌊
+Al+cl2=alcl3|Cloreto de alumínio|AlCl₃|🧊
+Fe+cl2=fecl3|Cloreto férrico|FeCl₃|🟠
+Cu+cl2=cucl2|Cloreto de cobre|CuCl₂|🟢
+Zn+cl2=zncl2|Cloreto de zinco|ZnCl₂|🔩
+Ag+cl2=agcl|Cloreto de prata|AgCl|⚪
+Na+br2=nabr|Brometo de sódio|NaBr|🏊
+Ag+br2=agbr|Brometo de prata|AgBr|📷
+K+i2=ki|Iodeto de potássio|KI|🥼
+Ag+i2=agi|Iodeto de prata|AgI|☔
+Na+f2=naf|Fluoreto de sódio|NaF|🦷
+Ca+f2=caf2|Fluorita|CaF₂|💜
+Al+f2=alf3|Fluoreto de alumínio|AlF₃|🏭
+Xe+f2=xef2|Difluoreto de xenônio|XeF₂|🪩
+Kr+f2=krf2|Difluoreto de criptônio|KrF₂|🧿
+hcl+nh3=nh4cl|Cloreto de amônio|NH₄Cl|🌬️
+cuo+h2so4=cuso4|Sulfato de cobre|CuSO₄|🔵|CuO + H₂SO₄ → CuSO₄ + H₂O
+Ba+h2so4=baso4|Sulfato de bário|BaSO₄|🩻|Ba + H₂SO₄ → BaSO₄ + H₂
+Zn+h2so4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + H₂SO₄ → ZnSO₄ + H₂
+Mg+h2so4=mgso4|Sal de Epsom|MgSO₄|🛁|Mg + H₂SO₄ → MgSO₄ + H₂
+Fe+h2so4=feso4|Sulfato de ferro|FeSO₄|🟩|Fe + H₂SO₄ → FeSO₄ + H₂
+Ca+h2so4=caso4|Gesso|CaSO₄|🧱|Ca + H₂SO₄ → CaSO₄ + H₂
+naoh+h2so4=na2so4|Sulfato de sódio|Na₂SO₄|🧺|2NaOH + H₂SO₄ → Na₂SO₄ + 2H₂O
 cao+co2=caco3|Calcário|CaCO₃|🐚
-Mg+O=mgo|Óxido de magnésio|MgO|✨
-Fe+O=ferrugem|Ferrugem|Fe₂O₃|🟫
+caoh2+co2=caco3||||Ca(OH)₂ + CO₂ → CaCO₃ + H₂O
+naoh+co2=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaOH + CO₂ → Na₂CO₃ + H₂O
+h2co3+na2co3=nahco3|Bicarbonato de sódio|NaHCO₃|🍰
+Ca+h3po4=ca3po42|Fosfato de cálcio|Ca₃(PO₄)₂|🦴|3Ca + 2H₃PO₄ → Ca₃(PO₄)₂ + 3H₂
+Ag+hno3=agno3|Nitrato de prata|AgNO₃|🪞|3Ag + 4HNO₃ → 3AgNO₃ + NO + 2H₂O
+Cu+hno3=cuno32|Nitrato de cobre|Cu(NO₃)₂|🟦|3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
+caco3+silica=vidro|Vidro|SiO₂ amorfo|🪟|CaCO₃ + SiO₂ → vidro + CO₂
+Ag+S=ag2s|Sulfeto de prata|Ag₂S|🖤
+Hg+S=hgs|Cinábrio|HgS|🩸
+Pb+S=pbs|Galena|PbS|⛏️
+Cd+S=cds|Amarelo de cádmio|CdS|🌻
+Zn+S=zns|Sulfeto de zinco|ZnS|🌟
+Fe+S=fes|Sulfeto de ferro|FeS|⛓️
+fes+S=pirita|Pirita|FeS₂|✨
+Cu+S=cus|Sulfeto de cobre|CuS|🫐
+Mo+S=mos2|Dissulfeto de molibdênio|MoS₂|🛢️
+Sb+S=sb2s3|Estibinita|Sb₂S₃|💫
+Ga+n2=gan|Nitreto de gálio|GaN|💡
+B+n2=bn|Nitreto de boro|BN|🔷
+Al+n2=aln|Nitreto de alumínio|AlN|🧱
+C+W=wc|Carbeto de tungstênio|WC|🛠️
+C+Si=sic|Carbeto de silício|SiC|🔸
+Ca+C=cac2|Carbeto de cálcio|CaC₂|🪔
+As+Ga=gaas|Arseneto de gálio|GaAs|📡
+In+P=inp|Fosfeto de índio|InP|📶
+Cd+Te=cdte|Telureto de cádmio|CdTe|🔆
+Cd+Se=cdse|Seleneto de cádmio|CdSe|🌈
+Se+Zn=znse|Seleneto de zinco|ZnSe|🔬
+cac2+agua=c2h2|Acetileno|C₂H₂|🔦|CaC₂ + 2H₂O → C₂H₂ + Ca(OH)₂
+c2h2+h2=c2h4|Eteno (etileno)|C₂H₄|🍏
+c2h4+h2=c2h6|Etano|C₂H₆|🕯️
+c2h4+agua=etanol|Etanol|C₂H₅OH|🍺
+ch4+o2=metanol|Metanol|CH₃OH|🪵
+co+h2=metanol
+etanol+o2=acetico|Ácido acético|CH₃COOH|🥗|C₂H₅OH + O₂ → CH₃COOH + H₂O
+metanol+o2=hcho|Formaldeído|HCHO|🧬|2CH₃OH + O₂ → 2HCHO + 2H₂O
+c2h2+c2h2=benzeno|Benzeno|C₆H₆|⬡|3C₂H₂ → C₆H₆
+ch4+cl2=ch3cl|Clorometano|CH₃Cl|☁️|CH₄ + Cl₂ → CH₃Cl + HCl
+nh3+co2=ureia|Ureia|CO(NH₂)₂|🌾|2NH₃ + CO₂ → CO(NH₂)₂ + H₂O
+Na+Hg=namalgama|Amálgama de sódio|Na–Hg|🔘
+ch3cl+namalgama=dmhg|Dimetilmercúrio|(CH₃)₂Hg|☠️|2CH₃Cl + 2Na + Hg → (CH₃)₂Hg + 2NaCl
 C+Fe=aco|Aço|Fe–C|⚙️
 Cr+aco=inox|Aço inoxidável|Fe–Cr–Ni|🍴
 Cu+Sn=bronze|Bronze|Cu–Sn|🔔
@@ -139,40 +301,23 @@ Cu+Zn=latao|Latão|Cu–Zn|🎺
 Au+Cu=ourorose|Ouro rosé|Au–Cu|🌹
 Au+Pd=ourobranco|Ouro branco|Au–Pd|💍
 Pb+Sn=solda|Solda|Sn–Pb|🔩
-Al+O=alumina|Alumina|Al₂O₃|💎
-O+Si=silica|Sílica|SiO₂|🏖️
-caco3+silica=vidro|Vidro|SiO₂ amorfo|🪟
-Ag+S=ag2s|Sulfeto de prata|Ag₂S|🖤
-Hg+S=hgs|Cinábrio|HgS|🔴
-Pb+S=pbs|Galena|PbS|⛏️
-O+Zn=zno|Óxido de zinco|ZnO|☀️
-O+Ti=tio2|Dióxido de titânio|TiO₂|🤍
-Cu+O=cuo|Óxido de cobre|CuO|⚫
-Cu+h2so4=cuso4|Sulfato de cobre|CuSO₄|🔵
-Ba+h2so4=baso4|Sulfato de bário|BaSO₄|🩻
-Cl+K=kcl|Cloreto de potássio|KCl|🍌
-F+Na=naf|Fluoreto de sódio|NaF|🦷
-Ca+Cl=cacl2|Cloreto de cálcio|CaCl₂|❄️
-C+W=wc|Carbeto de tungstênio|WC|🛠️
 Ni+Ti=nitinol|Nitinol|Ni–Ti|🦾
 Ir+Pt=ptir|Liga platina-irídio|Pt–Ir|📏
 Al+Mg=magnalio|Magnálio|Al–Mg|✈️
-alumina+Co=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷
-Cr+O=cr2o3|Verde de cromo|Cr₂O₃|🌿
-Mn+O=mno2|Dióxido de manganês|MnO₂|🔋
-Cd+S=cds|Amarelo de cádmio|CdS|🟡
-As+Ga=gaas|Arseneto de gálio|GaAs|📡
-Ga+N=gan|Nitreto de gálio|GaN|💡
-Cd+Te=cdte|Telureto de cádmio|CdTe|🔆
-F+Xe=xef2|Difluoreto de xenônio|XeF₂|🧊
-O+P=p2o5|Pentóxido de fósforo|P₄O₁₀|⬜
-agua+p2o5=h3po4|Ácido fosfórico|H₃PO₄|🥤
-O+Zr=zro2|Zircônia|ZrO₂|💠
-Mo+S=mos2|Dissulfeto de molibdênio|MoS₂|🛢️
-O+agua=h2o2|Água oxigenada|H₂O₂|🩹
-hcl+nh3=nh4cl|Cloreto de amônio|NH₄Cl|🌬️
 Al+Sc=alsc|Liga alumínio-escândio|Al–Sc|🚲
-Bi+Sn=ligafusivel|Liga fusível|Bi–Sn|🫠`;
+Bi+Sn=ligafusivel|Liga fusível|Bi–Sn|🫠
+Cu+Ni=cuproniquel|Cuproníquel|Cu–Ni|🪙
+Al+Cu=duralumin|Duralumínio|Al–Cu–Mg|🛩️
+Ag+Cu=pratalei|Prata de lei|Ag–Cu|🍽️
+Ag+Au=electrum|Electrum|Au–Ag|🏺
+Au+Hg=amalgama|Amálgama de ouro|Au–Hg|🥈
+Fe+Ni=invar|Invar|Fe–Ni|🕰️
+Cr+Ni=nicromo|Nicromo|Ni–Cr|🍞
+Nb+Ti=nbti|Nióbio-titânio|Nb–Ti|🧲
+Be+Cu=cube|Cobre-berílio|Cu–Be|🔧
+K+Na=nak|Liga sódio-potássio|Na–K|🫗
+Pt+Rh=ptrh|Liga platina-ródio|Pt–Rh|🚗
+coo+alumina=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷`;
 
 // ===================== PREPARO =====================
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
@@ -181,10 +326,11 @@ const DB={},REC={},ELS=[],SUBS=[];                 // DB: id -> {s: símbolo/emo
 const chave=(a,b)=>[a,b].sort().join('+');        // ordem dos ingredientes não importa
 ELEMENTOS.split(/[|\n]/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
   const[n,sy,nm]=s.split(' ');DB[sy]={id:sy,s:sy,n:nm,num:+n,sub:'nº '+n,el:1};ELS.push(sy)});
+const EQ={},ORD={};                                 // equações explícitas (com subprodutos) e ordem original dos reagentes
 RECEITAS.split('\n').map(s=>s.trim()).filter(Boolean).forEach(l=>{
-  const[ing,res]=l.split('='),[id,nome,f,em]=res.split('|'),[a,b]=ing.split('+');
+  const[ing,res]=l.split('='),[id,nome,f,em,eq]=res.split('|'),[a,b]=ing.split('+'),k=chave(a,b);
   if(nome&&!DB[id]){DB[id]={id,s:em,n:nome,sub:f};SUBS.push(id)}
-  REC[chave(a,b)]=id});
+  REC[k]=id;ORD[k]=[a,b];if(eq)EQ[k]=eq});
 
 let found=[];                                       // substâncias descobertas (em ordem)
 try{found=JSON.parse(ls('qf.found')||'[]').filter(i=>DB[i]&&!DB[i].el)}catch(e){}
@@ -202,6 +348,38 @@ function painel(novo){
     +(s.length?'<div class="sep">Substâncias descobertas</div>'+s.map(lin).join(''):'')||'<div class="sep">Nada encontrado.</div>';
   $('#cont').textContent=`Descobertas: ${found.length} / ${SUBS.length}`;
   if(novo)$('.new')?.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+// ===================== EQUAÇÕES QUÍMICAS =====================
+const DIA=['H','N','O','F','Cl','Br','I'];          // elementos que reagem como moléculas diatômicas (X₂)
+const forma=i=>DB[i].el?(DIA.includes(i)?i+'₂':i):DB[i].sub;
+function conta(f){                                  // "Ca(OH)₂" -> {Ca:1,O:2,H:2}
+  const st=[{}],re=/([A-Z][a-z]?)(\d*)|(\()|\)(\d*)/g;let m;
+  f=f.replace(/[₀-₉]/g,c=>c.charCodeAt(0)-8320);
+  while(m=re.exec(f)){
+    if(m[1]){const o=st[st.length-1];o[m[1]]=(o[m[1]]||0)+(+m[2]||1)}
+    else if(m[3])st.push({});
+    else{const o=st.pop(),k=+m[4]||1,p=st[st.length-1];for(const e in o)p[e]=(p[e]||0)+o[e]*k}
+  }
+  return st[0];
+}
+function equacao(a,b,id){                           // ex.: "2H₂ + O₂ → 2H₂O" (explícita ou balanceada automaticamente)
+  const k=chave(a,b);if(EQ[k])return EQ[k];
+  const rs=ORD[k].map(forma),p=DB[id].sub,n=c=>c>1?c:'';
+  if(p.includes('–'))return rs.join(' + ')+' → '+DB[id].n;     // ligas: sem balanceamento
+  try{
+    const C=[...rs,p].map(conta),el=new Set(C.flatMap(Object.keys));let best,min=99;
+    for(let x=1;x<9;x++)for(let y=1;y<9;y++)for(let w=1;w<9;w++)
+      if(x+y+w<min&&[...el].every(e=>x*(C[0][e]|0)+y*(C[1][e]|0)==w*(C[2][e]|0))){min=x+y+w;best=[x,y,w]}
+    if(best)return n(best[0])+rs[0]+' + '+n(best[1])+rs[1]+' → '+n(best[2])+p;
+  }catch(e){}
+  return rs.join(' + ')+' → '+p;
+}
+let te;
+function mostraEq(eq,nova,d){                       // mostra a equação por ~6 s; destaque se for descoberta nova
+  const e=$('#eqn');e.className=nova?'on nv':'on';
+  e.innerHTML=`<small>${nova?'✨ Nova descoberta: ':''}${d.s} ${d.n}</small><span>${eq}</span>`;
+  clearTimeout(te);te=setTimeout(()=>e.className='',6000);
 }
 
 // ===================== ITENS NA MESA =====================
@@ -252,12 +430,13 @@ function soltar(el){
 }
 function combinar(a,b){
   const id=REC[chave(a.dataset.id,b.dataset.id)];
-  if(!id){aviso('Nada acontece…');a.classList.add('sh');setTimeout(()=>a.classList.remove('sh'),350);return}
+  if(!id){aviso(`Sem reação: ${DB[a.dataset.id].n} + ${DB[b.dataset.id].n}`);a.classList.add('sh');setTimeout(()=>a.classList.remove('sh'),350);return}
   const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect(),d=DB[id];
   const x=(ra.left+ra.width/2+rb.left+rb.width/2)/2,y=(ra.top+ra.height/2+rb.top+rb.height/2)/2;
-  a.remove();b.remove();criar(id,x,y,'pop');
-  if(found.includes(id))return aviso(`${d.s} ${d.n}`);
-  found.push(id);ls('qf.found',JSON.stringify(found));painel(id);aviso(`Nova descoberta: ${d.s} ${d.n}!`);
+  const nova=!found.includes(id),eq=equacao(a.dataset.id,b.dataset.id,id);
+  a.remove();b.remove();criar(id,x,y,nova?'pop nova':'pop');
+  mostraEq(eq,nova,d);
+  if(nova){found.push(id);ls('qf.found',JSON.stringify(found));painel(id)}
 }
 
 // ===================== FUNDO: MOLÉCULAS FLUTUANTES =====================
@@ -342,6 +521,39 @@ $('#zok').onclick=()=>{
   $$('.item').forEach(x=>{if(!DB[x.dataset.id].el)x.remove()});   // tira da mesa as substâncias
   $('#zera').close();painel();dica();aviso('Descobertas zeradas');
 };
+
+// ===================== ÁREA DO ADMINISTRADOR (descobertas + crafting) =====================
+// Só o hash SHA-256 da senha fica no código (a senha em si não aparece). Como o jogo roda no navegador,
+// isto é uma trava simples: não é segurança real contra quem edita o código.
+const HASH='12ed51c39078b3110952131a0ddbc9d3c987ff7ae3b0a549451c0b69b83c7534';
+let adm=false,alvo='d';                             // adm: liberado até recarregar a página; alvo: aba aberta
+const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(x=>x.toString(16).padStart(2,'0')).join('');
+const rot=i=>`${DB[i].s} ${DB[i].n}`;
+function aba(t){                                    // alterna entre "Descobertas" e "Crafting"
+  alvo=t;$$('#abas button').forEach(b=>b.classList.toggle('on',b.dataset.t==t));
+  $('#adg').hidden=t!='d';$('#acr').hidden=t!='c';
+  $('#adt').textContent=t=='d'?`Desbloqueadas: ${found.length} / ${SUBS.length}`:`${Object.keys(REC).length} receitas no jogo (verde = resultado já descoberto)`;
+}
+function verAdm(){                                  // tela de senha ou conteúdo (verde = desbloqueado, cinza = bloqueado)
+  $('#adp').hidden=adm;$('#adv').hidden=!adm;
+  if(!adm){$('#ads').value='';$('#ade').textContent='';return}
+  $('#adg').innerHTML=SUBS.map(i=>{const d=DB[i],ok=found.includes(i);
+    return `<div class="dc ${ok?'ok':'bl'}"><span class="s">${ok?d.s:'🔒'}</span><b>${d.n}</b><small>${d.sub}</small></div>`}).join('');
+  $('#acr').innerHTML=Object.keys(REC).map(k=>{const id=REC[k],[a,b]=ORD[k];
+    return `<div class="cr ${found.includes(id)?'ok':'bl'}">${rot(a)} + ${rot(b)} → <b>${rot(id)}</b><small>${equacao(a,b,id)}</small></div>`}).join('');
+  aba(alvo);
+}
+function abre(t){alvo=t;verAdm();$('#adm').showModal();if(!adm)$('#ads').focus()}
+async function entrar(){
+  try{adm=(await sha($('#ads').value))==HASH}catch(e){$('#ade').textContent='Verificação indisponível neste navegador.';return}
+  if(adm)verAdm();else{$('#ade').textContent='Senha incorreta.';$('#ads').select()}
+}
+$('#desc').onclick=()=>abre('d');
+$('#craf').onclick=()=>abre('c');
+$$('#abas button').forEach(b=>b.onclick=()=>aba(b.dataset.t));
+$('#adx').onclick=$('#adf').onclick=()=>$('#adm').close();
+$('#adok').onclick=entrar;
+$('#ads').onkeydown=e=>{if(e.key=='Enter')entrar()};
 
 // ===================== TEMA, EVENTOS E INÍCIO =====================
 function tema(t){root.dataset.theme=t;ls('qf.tema',t);$('#tema').textContent=t=='dark'?'☀️ Claro':'🌙 Escuro';if(still&&mols.length)quadro()}
