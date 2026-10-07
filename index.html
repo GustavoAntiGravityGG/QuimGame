@@ -526,7 +526,7 @@ $('#zok').onclick=()=>{
 // Só o hash SHA-256 da senha fica no código (a senha em si não aparece). Como o jogo roda no navegador,
 // isto é uma trava simples: não é segurança real contra quem edita o código.
 const HASH='12ed51c39078b3110952131a0ddbc9d3c987ff7ae3b0a549451c0b69b83c7534';
-let adm=false,alvo='d';                             // adm: liberado até recarregar a página; alvo: aba aberta
+let adm=true,alvo='d';                             // adm: liberado até recarregar a página; alvo: aba aberta
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const rot=i=>`${DB[i].s} ${DB[i].n}`;
 function aba(t){                                    // alterna entre "Descobertas" e "Crafting"
