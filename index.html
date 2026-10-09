@@ -2,177 +2,975 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mesa de fusão — Química | Beta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa de Fusão — Laboratório de Química</title>
 <style>
-:root{--bg:#f1f4f2;--pn:#fff;--ink:#17231f;--mute:#667873;--ln:#d3dcd8;--ac:#0a8c76;--it:#fff}
-:root[data-theme=dark]{--bg:#0b1312;--pn:#111c1a;--ink:#dcebe7;--mute:#88a09a;--ln:#21342f;--ac:#3fdcbc;--it:#172623}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{display:flex;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);font:15px/1.35 "Avenir Next","Segoe UI",system-ui,sans-serif;transition:background-color .4s,color .4s}
-button,input{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-/* Mesa de fusão: papel pontilhado + canvas de moléculas */
-#mesa{flex:1;min-width:0;position:relative;overflow:hidden;background:radial-gradient(var(--ln) 1px,transparent 1.5px) 0 0/26px 26px var(--bg);transition:background-color .4s}
-#fundo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#barra{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:8px;align-items:center;pointer-events:none;z-index:2}
-h1{margin:0 auto 0 0;font:700 19px Georgia,"Times New Roman",serif}
-.bt{pointer-events:auto;border:1px solid var(--ln);background:var(--pn);border-radius:999px;padding:6px 14px;cursor:pointer;transition:border-color .2s,background-color .4s}
-.bt:hover{border-color:var(--ac)}
-#dica{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 28px;text-align:center;color:var(--mute);pointer-events:none;transition:opacity .3s}
-#aviso{position:absolute;left:50%;bottom:20px;transform:translate(-50%,16px);opacity:0;padding:8px 16px;border-radius:999px;background:var(--ink);color:var(--bg);white-space:nowrap;pointer-events:none;transition:.3s;z-index:99999}
-#aviso.on{opacity:1;transform:translate(-50%,0)}
-/* Itens arrastáveis */
-.item{position:fixed;z-index:10;min-width:92px;padding:8px 12px;text-align:center;border:1px solid var(--ln);border-radius:12px;background:var(--it);box-shadow:0 2px 8px #0002;cursor:grab;touch-action:none;user-select:none;transition:box-shadow .2s,border-color .2s,background-color .4s}
-.item.arr{cursor:grabbing;box-shadow:0 12px 26px #0004}
-.item.hot{border-color:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 30%,transparent)}
-.s{display:block;font:700 24px/1.15 Georgia,"Times New Roman",serif}
-b{font-weight:600}
-small{display:block;color:var(--mute);font-size:12px}
-.pop{animation:pop .55s cubic-bezier(.2,1.5,.4,1)}
-.sh{animation:sh .3s}
-@keyframes pop{0%{transform:scale(.2) rotate(-8deg);opacity:0}100%{transform:none;opacity:1}}
-@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-/* Painel lateral */
-#painel{flex:0 0 320px;display:flex;flex-direction:column;min-height:0;background:var(--pn);border-left:1px solid var(--ln);transition:background-color .4s,border-color .4s}
-#topo{padding:12px;border-bottom:1px solid var(--ln)}
-#q{width:100%;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);outline:0}
-#q:focus{border-color:var(--ac)}
-#cont{margin-top:8px;font-size:13px;color:var(--mute)}
-#lista{flex:1;overflow:auto;padding:6px}
-.sep{padding:10px 8px 4px;font-size:12px;color:var(--mute)}
-.row{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:0;border-radius:10px;background:none;text-align:left;cursor:grab;user-select:none;touch-action:pan-y}
-.row:hover{background:var(--bg)}
-.row .s{flex:0 0 42px;font-size:21px;text-align:center}
-.new{animation:fl 1.8s}
-@keyframes fl{0%,60%{background:color-mix(in srgb,var(--ac) 28%,transparent)}}
-/* Configurações, rodapé de reset e diálogo de confirmação */
-#barra{justify-content:flex-end;z-index:50000}
-#menu{pointer-events:auto;position:absolute;top:calc(100% + 8px);right:0;display:grid;gap:12px;width:240px;padding:14px;border:1px solid var(--ln);border-radius:14px;background:var(--pn);box-shadow:0 10px 30px #0003}
-#menu[hidden]{display:none}
-#menu label{display:grid;gap:6px;font-size:13px;color:var(--mute)}
-input[type=range]{width:100%;accent-color:var(--ac)}
-#rodape{padding:10px 12px;border-top:1px solid var(--ln)}
-#rodape .bt{width:100%}
-.perigo{border-color:#d9483b;color:#d9483b}
-.perigo:disabled{opacity:.45;cursor:not-allowed}
-dialog{width:min(360px,92vw);padding:20px;border:1px solid var(--ln);border-radius:14px;background:var(--pn);color:var(--ink)}
-dialog::backdrop{background:#0009}
-dialog p{margin:0 0 12px}
-#zi,#ads{width:100%;padding:9px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);outline:0}
-.acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-/* Área do administrador: descobertas e crafting */
-#adm{width:min(680px,94vw)}
-#adp{max-width:340px;margin:0 auto}
-#ade{min-height:1.2em;margin:8px 0 0;color:#d9483b;font-size:13px}
-#abas{display:flex;gap:6px;margin-bottom:10px}
-#abas .on{border-color:var(--ac);color:var(--ac);font-weight:600}
-#adt{color:var(--mute);font-size:13px}
-#adg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-#acr{display:grid;gap:8px}
-#adg,#acr{max-height:56vh;overflow:auto;padding:2px}
-#adg[hidden],#acr[hidden]{display:none}
-.dc,.cr{padding:8px 10px;border:1px solid var(--ln);border-radius:10px}
-.dc{text-align:center}
-.dc .s{font-size:22px}
-.cr small{font:13px Georgia,"Times New Roman",serif}
-.ok{border-color:#1f9d55;background:color-mix(in srgb,#1f9d55 18%,transparent)}
-.bl{opacity:.55;filter:grayscale(1)}
-/* Equação da reação e destaque de descoberta nova */
-#eqn{position:absolute;left:50%;bottom:64px;transform:translate(-50%,16px);max-width:92%;padding:12px 20px;text-align:center;border:1px solid var(--ln);border-radius:14px;background:var(--pn);box-shadow:0 8px 24px #0003;opacity:0;pointer-events:none;transition:.35s;z-index:99998}
-#eqn.on{opacity:1;transform:translate(-50%,0)}
-#eqn span{display:block;font:700 21px Georgia,"Times New Roman",serif}
-#eqn.nv{border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent),0 8px 24px #0003}
-#eqn.nv small{color:var(--ac);font-weight:600}
-.nova{border-color:var(--ac);animation:pop .55s cubic-bezier(.2,1.5,.4,1),glow 2.4s}
-@keyframes glow{0%,70%{box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 45%,transparent),0 0 28px var(--ac)}}
-@media(max-width:720px){h1,.tx{display:none}#barra{flex-wrap:wrap}body{flex-direction:column}#painel{flex:0 0 40%;border-left:0;border-top:1px solid var(--ln)}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root {
+  --bg: #f3f6f4;
+  --pn: #ffffff;
+  --card: #ffffff;
+  --ink: #16221f;
+  --mute: #62746f;
+  --ln: #d2ddd9;
+  --ac: #078e76;
+  --ac-hover: #05705d;
+  --ac-glow: rgba(7, 142, 118, 0.28);
+  --it: #ffffff;
+  --success: #1b9e55;
+  --success-bg: rgba(27, 158, 85, 0.14);
+  --gold: #d97706;
+  --danger: #dc2626;
+  --danger-bg: rgba(220, 38, 38, 0.1);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.1);
+  --shadow-lg: 0 14px 34px rgba(0,0,0,0.16);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --z-panel: 50;
+  --z-bar: 60;
+  --z-item: 200;
+  --z-drag: 99999;
+  --z-toast: 100000;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0c1412;
+  --pn: #121e1b;
+  --card: #162421;
+  --ink: #e0ece8;
+  --mute: #8ca39d;
+  --ln: #213530;
+  --ac: #32d6b3;
+  --ac-hover: #23ba99;
+  --ac-glow: rgba(50, 214, 179, 0.32);
+  --it: #162522;
+  --success: #29b867;
+  --success-bg: rgba(41, 184, 103, 0.18);
+  --gold: #f59e0b;
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.18);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,0.35);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.65);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14.5px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  transition: background-color .3s, color .3s;
+}
+
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+
+/* ==================== MESA DE FUSÃO ==================== */
+#mesa {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(var(--ln) 1.2px, transparent 1.6px) 0 0 / 26px 26px var(--bg);
+  user-select: none;
+}
+#fundo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Barra superior da mesa */
+#barra {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  z-index: var(--z-bar);
+}
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  pointer-events: auto;
+}
+h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  font-family: Georgia, "Times New Roman", serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-version {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--ac-glow);
+  color: var(--ac);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--ac);
+}
+
+.acoes-barra {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.bt {
+  border: 1px solid var(--ln);
+  background: var(--pn);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .2s, background-color .25s, transform .15s, box-shadow .2s;
+  user-select: none;
+}
+.bt:hover {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 3px var(--ac-glow);
+}
+.bt:active { transform: scale(0.97); }
+.bt-icon { padding: 6px 10px; }
+.bt.destaque {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+  font-weight: 600;
+}
+.bt.destaque:hover { background: var(--ac-hover); }
+
+#dica-centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  text-align: center;
+  color: var(--mute);
+  pointer-events: none;
+  transition: opacity .35s;
+  gap: 8px;
+}
+#dica-centro .icone-dica { font-size: 36px; opacity: 0.7; }
+#dica-centro h2 { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); opacity: 0.85; }
+#dica-centro p { margin: 0; max-width: 460px; font-size: 13.5px; }
+
+/* Avisos flutuantes (toasts) */
+#aviso {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 16px);
+  opacity: 0;
+  padding: 9px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow-md);
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity .25s, transform .25s;
+  z-index: var(--z-toast);
+}
+#aviso.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ==================== ITENS NA MESA (CARDS) ==================== */
+.item {
+  position: fixed;
+  z-index: var(--z-item);
+  min-width: 98px;
+  max-width: 160px;
+  padding: 8px 12px;
+  text-align: center;
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-md);
+  background: var(--it);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition: box-shadow .2s, border-color .2s, background-color .3s;
+}
+.item:hover {
+  border-color: var(--ac);
+  box-shadow: var(--shadow-md);
+}
+.item.arr {
+  z-index: var(--z-drag) !important;
+  cursor: grabbing !important;
+  box-shadow: var(--shadow-lg), 0 0 0 4px var(--ac-glow) !important;
+  transform: scale(1.05);
+  transition: none;
+}
+.item.hot {
+  border-color: var(--ac);
+  transform: scale(1.08);
+  box-shadow: 0 0 0 5px var(--ac-glow), var(--shadow-md);
+  animation: pulso-fusao .8s infinite alternate;
+}
+@keyframes pulso-fusao {
+  from { border-color: var(--ac); }
+  to { border-color: var(--gold); }
+}
+
+.item .s {
+  display: block;
+  font-size: 24px;
+  line-height: 1.15;
+  margin-bottom: 2px;
+}
+.item b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item small {
+  display: block;
+  color: var(--mute);
+  font-size: 11.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.item .del-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 10;
+}
+.item:hover .del-btn { display: flex; }
+.item.elemento {
+  min-width: 50px;
+  max-width: 58px;
+  padding: 5px 7px;
+  border-radius: 10px;
+  gap: 2px;
+}
+.item.elemento .num {
+  display: block;
+  color: var(--mute);
+  font: 10px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.item.elemento .s {
+  font-size: 19px;
+  line-height: 1;
+  margin: 0;
+  font-weight: 700;
+}
+
+.pop { animation: pop .4s cubic-bezier(.17, 1.4, .35, 1); }
+.sh { animation: sh .32s ease-in-out; }
+.nova {
+  border-color: var(--ac);
+  animation: pop .45s cubic-bezier(.17, 1.4, .35, 1), glow 2.2s ease-out;
+}
+@keyframes pop {
+  0% { transform: scale(.3) rotate(-6deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes sh {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+@keyframes glow {
+  0%, 50% { box-shadow: 0 0 0 6px var(--ac-glow), 0 0 32px var(--ac); }
+}
+
+/* ==================== HUD DA EQUAÇÃO QUÍMICA ==================== */
+#eqn {
+  position: absolute;
+  left: 50%;
+  bottom: 68px;
+  transform: translate(-50%, 20px);
+  max-width: 90%;
+  padding: 12px 24px;
+  text-align: center;
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-lg);
+  background: var(--pn);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s, transform .35s;
+  z-index: var(--z-toast);
+}
+#eqn.on { opacity: 1; transform: translate(-50%, 0); }
+#eqn .topo-eqn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--mute);
+  margin-bottom: 4px;
+}
+#eqn.nv {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 4px var(--ac-glow), var(--shadow-lg);
+}
+#eqn.nv .topo-eqn { color: var(--ac); font-weight: 700; }
+#eqn .formula-texto {
+  display: block;
+  font: 700 20px Georgia, "Times New Roman", serif;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+/* ==================== PAINEL LATERAL ==================== */
+#painel {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--pn);
+  border-left: 1px solid var(--ln);
+  transition: background-color .3s, border-color .3s;
+  z-index: var(--z-panel);
+}
+#topo-painel {
+  padding: 10px 10px 8px;
+  border-bottom: 1px solid var(--ln);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.campo-busca {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+#q {
+  width: 100%;
+  padding: 9px 34px 9px 12px;
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  outline: 0;
+  font-size: 13.5px;
+  transition: border-color .2s, box-shadow .2s;
+}
+#q:focus {
+  border-color: var(--ac);
+  box-shadow: 0 0 0 3px var(--ac-glow);
+}
+#limpar-busca {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--mute);
+  cursor: pointer;
+  padding: 4px;
+  font-size: 14px;
+  display: none;
+}
+#limpar-busca:hover { color: var(--ink); }
+
+/* Filtros por Categorias */
+#filtros {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+#filtros::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ln);
+  background: var(--bg);
+  color: var(--mute);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+}
+.chip:hover { color: var(--ink); border-color: var(--ac); }
+.chip.on {
+  background: var(--ac);
+  color: #fff;
+  border-color: var(--ac);
+  font-weight: 600;
+}
+
+/* Progresso do Usuário */
+#progresso-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.prog-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--mute);
+}
+.prog-info b { color: var(--ink); }
+.prog-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ln);
+  overflow: hidden;
+  position: relative;
+}
+.prog-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--ac), #1fbb9c);
+  border-radius: 999px;
+  transition: width .5s ease;
+}
+
+/* Lista de itens no painel */
+#lista {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.sep {
+  padding: 8px 8px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mute);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  touch-action: pan-y;
+  transition: background-color .15s, border-color .15s, transform .1s;
+}
+.row:hover {
+  background: var(--bg);
+  border-color: var(--ln);
+}
+.row:active { transform: scale(0.98); }
+.row .s {
+  flex: 0 0 36px;
+  font-size: 20px;
+  text-align: center;
+}
+.row .det {
+  flex: 1;
+  min-width: 0;
+}
+.row .det b {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row .det small {
+  display: block;
+  color: var(--mute);
+  font-size: 11.5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.row .tag-tipo {
+  font-size: 10px;
+  color: var(--mute);
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--ln);
+}
+.row.new { animation: fl 1.8s; }
+@keyframes fl {
+  0%, 60% { background: var(--ac-glow); border-color: var(--ac); }
+}
+
+#rodape-painel {
+  padding: 8px 10px;
+  border-top: 1px solid var(--ln);
+  display: flex;
+  gap: 8px;
+}
+#rodape-painel .bt { flex: 1; justify-content: center; }
+
+/* ==================== DIÁLOGOS / MODAIS ==================== */
+dialog {
+  width: min(540px, 92vw);
+  max-height: 85vh;
+  padding: 24px;
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-lg);
+  background: var(--pn);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+}
+dialog h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.acoes {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.perigo {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.perigo:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.2);
+}
+
+/* Modal Enciclopédia & Livro de Receitas */
+#modal-receitas {
+  width: min(720px, 95vw);
+  height: 80vh;
+  flex-direction: column;
+}
+#modal-receitas[open] { display: flex; }
+.abas-modal {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ln);
+  padding-bottom: 8px;
+}
+.abas-modal .bt.on {
+  border-color: var(--ac);
+  background: var(--ac);
+  color: #fff;
+  font-weight: 600;
+}
+.busca-modal {
+  margin-bottom: 12px;
+}
+.conteudo-modal {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 4px;
+}
+.conteudo-modal[hidden] { display: none !important; }
+.grid-descobertas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.card-dc, .card-cr {
+  padding: 10px;
+  border: 1px solid var(--ln);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  transition: transform .15s, border-color .15s;
+}
+.card-dc { text-align: center; }
+.card-dc .s { font-size: 24px; margin-bottom: 4px; }
+.card-dc.ok, .card-cr.ok {
+  border-color: var(--success);
+  background: var(--success-bg);
+}
+.card-dc.bl, .card-cr.bl {
+  opacity: 0.55;
+  filter: grayscale(0.8);
+}
+.card-cr {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.card-cr small {
+  font-size: 12.5px;
+  color: var(--mute);
+  font-family: Georgia, "Times New Roman", serif;
+}
+.card-cr b { color: var(--ink); }
+
+/* Modal Configurações */
+.config-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ln);
+}
+.config-linha label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.config-linha label small {
+  color: var(--mute);
+  font-weight: normal;
+  font-size: 12px;
+}
+input[type="range"] {
+  accent-color: var(--ac);
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  body { flex-direction: column; }
+  h1 span.titulo-txt { display: none; }
+  #painel {
+    flex: 0 0 45vh;
+    border-left: 0;
+    border-top: 1px solid var(--ln);
+  }
+  #barra { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
 </style>
 </head>
 <body>
+
 <main id="mesa">
   <canvas id="fundo"></canvas>
+
   <div id="barra">
-    <h1>Mesa de fusão</h1>
-    <button class="bt" id="limpar">Limpar mesa</button>
-    <button class="bt" id="desc" aria-label="Descobertas (administrador)">🔒<span class="tx"> Descobertas</span></button>
-    <button class="bt" id="craf" aria-label="Crafting (administrador)">📖<span class="tx"> Crafting</span></button>
-    <button class="bt" id="cfg" aria-label="Configurações" aria-expanded="false" title="Configurações">⚙️</button>
-    <button class="bt" id="tema" aria-label="Alternar tema claro/escuro"></button>
-    <div id="menu" hidden>
-      <button class="bt" id="mudo"></button>
-      <label>Volume da música: <span id="vv"></span>%<input type="range" id="vol" min="0" max="100" aria-label="Volume da música"></label>
+    <div class="logo-area">
+      <h1>
+        🧪 <span class="titulo-txt">Mesa de Fusão</span>
+      </h1>
+      <span class="badge-version">v2.0 Química</span>
+    </div>
+
+    <div class="acoes-barra">
+      <button class="bt" id="limpar" title="Limpar todos os elementos da mesa">🧹 Limpar mesa</button>
+      <button class="bt" id="organizar" title="Alinhar elementos soltos na mesa">📐 Organizar</button>
+      <button class="bt" id="dica-btn" title="Receber dica de combinação química">💡 Dica</button>
+      <button class="bt" id="livro-btn" title="Abrir Livro de Descobertas e Receitas">📖 Enciclopédia</button>
+      <button class="bt" id="cfg-btn" title="Configurações e Áudio">⚙️ Config</button>
     </div>
   </div>
-  <p id="dica">Arraste elementos do painel e solte um sobre o outro para reagir.<br>Clique direito (ou arraste para fora) para remover.</p>
+
+  <div id="dica-centro">
+    <div class="icone-dica">⚗️</div>
+    <h2>Laboratório Aberto</h2>
+    <p>Clique ou arraste elementos do painel lateral para a bancada e solte um sobre o outro para reagir.</p>
+    <p style="font-size:12px; color:var(--mute)">Dica: Dê um <b>duplo-clique</b> em qualquer elemento na mesa para duplicá-lo na hora!</p>
+  </div>
+
   <div id="aviso" role="status"></div>
   <div id="eqn" role="status"></div>
 </main>
+
 <aside id="painel">
-  <div id="topo">
-    <input id="q" type="search" placeholder="Buscar por nome, símbolo ou nº" aria-label="Buscar">
-    <div id="cont"></div>
+  <div id="topo-painel">
+    <div class="campo-busca">
+      <input id="q" type="search" placeholder="Buscar por nome, símbolo, fórmula (ex: H2O) ou nº" autocomplete="off" aria-label="Buscar elementos">
+      <button id="limpar-busca" aria-label="Limpar busca">✕</button>
+    </div>
+
+    <div id="filtros">
+      <button class="chip on" data-f="todos">Todos</button>
+      <button class="chip" data-f="elementos">⚛️ Elementos</button>
+      <button class="chip" data-f="descobertas">✨ Descobertas</button>
+      <button class="chip" data-f="acidos">⚗️ Ácidos & Bases</button>
+      <button class="chip" data-f="sais">🧂 Sais & Óxidos</button>
+      <button class="chip" data-f="ligas">🔩 Ligas</button>
+      <button class="chip" data-f="organicos">🍃 Orgânicos</button>
+    </div>
+
+    <div id="progresso-box">
+      <div class="prog-info">
+        <span><span id="prog-label">Descobertas</span>: <b id="prog-txt">0 / 0</b></span>
+        <span id="rank-txt">Iniciante</span>
+      </div>
+      <div class="prog-barra">
+        <div class="prog-fill" id="prog-fill"></div>
+      </div>
+    </div>
   </div>
-  <div id="lista"></div>
-  <div id="rodape"><button class="bt perigo" id="zerar">Zerar descobertas</button></div>
+
+  <div id="lista" role="list"></div>
+
+  <div id="rodape-painel">
+    <button class="bt" id="hist-btn" title="Ver histórico de reações">🕒 Histórico</button>
+    <button class="bt perigo" id="zerar-btn" title="Reiniciar progresso">Zerar</button>
+  </div>
 </aside>
-<dialog id="zera">
-  <p id="zt"></p>
-  <input id="zi" placeholder="Digite ZERAR" autocomplete="off" aria-label="Digite ZERAR para confirmar" hidden>
-  <div class="acoes"><button class="bt" id="zno">Cancelar</button><button class="bt perigo" id="zok"></button></div>
+
+<!-- DIÁLOGO: ENCICLOPÉDIA E RECEITAS -->
+<dialog id="modal-receitas">
+  <div class="abas-modal">
+    <button class="bt on" id="aba-dc-btn">✨ Descobertas (<span id="cont-dc">0</span>)</button>
+    <button class="bt" id="aba-cr-btn">📜 Livro de Receitas (<span id="cont-cr">0</span>)</button>
+    <div style="flex:1"></div>
+    <button class="bt" id="modo-professor-btn" title="Marcar temporariamente todas as fórmulas como concluídas">🎓 Modo Estudo</button>
+    <button class="bt bt-icon" id="fechar-receitas-btn">✕</button>
+  </div>
+  <div class="busca-modal">
+    <input id="q-modal" type="search" placeholder="Filtrar receitas ou substâncias..." style="width:100%; padding:8px 12px; border:1px solid var(--ln); border-radius:8px; background:var(--bg)">
+  </div>
+  <div class="conteudo-modal" id="conteudo-modal-dc">
+    <div class="grid-descobertas" id="grid-dc"></div>
+  </div>
+  <div class="conteudo-modal" id="conteudo-modal-cr" hidden>
+    <div id="lista-cr" style="display:grid; gap:8px"></div>
+  </div>
 </dialog>
 
-<dialog id="adm">
-  <div id="adp">
-    <p><b>Área do craft</b><br>Digite a senha para ver as descobertas e o crafting.</p>
-    <input id="ads" type="password" placeholder="Senha" autocomplete="off" aria-label="Senha do administrador">
-    <p id="ade"></p>
-    <div class="acoes"><button class="bt" id="adx">Cancelar</button><button class="bt" id="adok">Entrar</button></div>
+<!-- DIÁLOGO: CONFIGURAÇÕES -->
+<dialog id="modal-cfg">
+  <h3>⚙️ Configurações do Laboratório</h3>
+  <div class="config-linha">
+    <label>Música ambiente sintetizada<small>Arpeggios relaxantes em Web Audio</small></label>
+    <button class="bt" id="som-musica-btn">🔊 Ligada</button>
   </div>
-  <div id="adv" hidden>
-    <div id="abas"><button class="bt" data-t="d">Descobertas</button><button class="bt" data-t="c">Crafting</button></div>
-    <p id="adt"></p>
-    <div id="adg"></div>
-    <div id="acr" hidden></div>
-    <div class="acoes"><button class="bt" id="adf">Fechar</button></div>
+  <div class="config-linha">
+    <label>Volume da música: <span id="val-musica">35</span>%</label>
+    <input type="range" id="vol-musica" min="0" max="100" value="35">
+  </div>
+  <div class="config-linha">
+    <label>Efeitos sonoros (SFX)<small>Reações, descobertas e toques</small></label>
+    <button class="bt" id="som-sfx-btn">🔊 Ligados</button>
+  </div>
+  <div class="config-linha">
+    <label>Volume dos efeitos: <span id="val-sfx">70</span>%</label>
+    <input type="range" id="vol-sfx" min="0" max="100" value="70">
+  </div>
+  <div class="config-linha">
+    <label>Tema visual<small>Alterne entre modo claro e escuro</small></label>
+    <button class="bt" id="cfg-tema-btn">🌙 Alternar Tema</button>
+  </div>
+  <div class="acoes">
+    <button class="bt destaque" id="fechar-cfg-btn">Concluído</button>
+  </div>
+</dialog>
+
+<!-- DIÁLOGO: HISTÓRICO DE REAÇÕES -->
+<dialog id="modal-hist">
+  <h3>🕒 Histórico de Reações</h3>
+  <div id="lista-hist" style="max-height:55vh; overflow-y:auto; display:grid; gap:8px; padding-right:4px;"></div>
+  <div class="acoes">
+    <button class="bt" id="limpar-hist-btn">Limpar histórico</button>
+    <button class="bt destaque" id="fechar-hist-btn">Fechar</button>
+  </div>
+</dialog>
+
+<!-- DIÁLOGO: CONFIRMAR RESET -->
+<dialog id="modal-reset">
+  <h3>⚠️ Zerar Laboratório</h3>
+  <p id="reset-msg">Tem certeza de que deseja apagar todas as substâncias descobertas? Você voltará apenas com os elementos básicos da tabela periódica.</p>
+  <div class="acoes">
+    <button class="bt" id="cancelar-reset-btn">Cancelar</button>
+    <button class="bt perigo" id="confirmar-reset-btn">Zerar tudo</button>
   </div>
 </dialog>
 
 <script>
-// ===================== DADOS (edite aqui) =====================
-// Elementos: "número símbolo nome" — 1 a 56 e 74 a 83 (66 elementos).
-const ELEMENTOS=`1 H Hidrogênio|2 He Hélio|3 Li Lítio|4 Be Berílio|5 B Boro|6 C Carbono|7 N Nitrogênio|8 O Oxigênio
-9 F Flúor|10 Ne Neônio|11 Na Sódio|12 Mg Magnésio|13 Al Alumínio|14 Si Silício|15 P Fósforo|16 S Enxofre
-17 Cl Cloro|18 Ar Argônio|19 K Potássio|20 Ca Cálcio|21 Sc Escândio|22 Ti Titânio|23 V Vanádio|24 Cr Cromo
-25 Mn Manganês|26 Fe Ferro|27 Co Cobalto|28 Ni Níquel|29 Cu Cobre|30 Zn Zinco|31 Ga Gálio|32 Ge Germânio
-33 As Arsênio|34 Se Selênio|35 Br Bromo|36 Kr Criptônio|37 Rb Rubídio|38 Sr Estrôncio|39 Y Ítrio|40 Zr Zircônio
-41 Nb Nióbio|42 Mo Molibdênio|43 Tc Tecnécio|44 Ru Rutênio|45 Rh Ródio|46 Pd Paládio|47 Ag Prata|48 Cd Cádmio
-49 In Índio|50 Sn Estanho|51 Sb Antimônio|52 Te Telúrio|53 I Iodo|54 Xe Xenônio|55 Cs Césio|56 Ba Bário
-74 W Tungstênio|75 Re Rênio|76 Os Ósmio|77 Ir Irídio|78 Pt Platina|79 Au Ouro|80 Hg Mercúrio|81 Tl Tálio|82 Pb Chumbo|83 Bi Bismuto`;
+// =========================================================================
+// BANCO DE DADOS QUÍMICO COMPLETO & FÓRMULAS BALANCEADAS
+// =========================================================================
 
-// Receitas: "A+B=id|Nome|Fórmula|Emoji|Equação opcional". A e B são símbolos de elementos ou ids de compostos
-// (a ordem não importa). Átomos de H, O, N, F, Cl, Br e I formam primeiro a molécula X₂ (H+H=h2) e as reações usam X₂.
-// Sem "Equação", ela é balanceada automaticamente; use a equação explícita quando houver subprodutos.
-// Linha sem Nome/Fórmula/Emoji (id||||equação) = caminho alternativo para um composto já definido.
-const RECEITAS=`H+H=h2|Gás hidrogênio|H₂|🎈|2H → H₂
+const ELEMENTOS_TXT = `1 H Hidrogênio
+2 He Hélio
+3 Li Lítio
+4 Be Berílio
+5 B Boro
+6 C Carbono
+7 N Nitrogênio
+8 O Oxigênio
+9 F Flúor
+10 Ne Neônio
+11 Na Sódio
+12 Mg Magnésio
+13 Al Alumínio
+14 Si Silício
+15 P Fósforo
+16 S Enxofre
+17 Cl Cloro
+18 Ar Argônio
+19 K Potássio
+20 Ca Cálcio
+21 Sc Escândio
+22 Ti Titânio
+23 V Vanádio
+24 Cr Cromo
+25 Mn Manganês
+26 Fe Ferro
+27 Co Cobalto
+28 Ni Níquel
+29 Cu Cobre
+30 Zn Zinco
+31 Ga Gálio
+32 Ge Germânio
+33 As Arsênio
+34 Se Selênio
+35 Br Bromo
+36 Kr Criptônio
+37 Rb Rubídio
+38 Sr Estrôncio
+39 Y Ítrio
+40 Zr Zircônio
+41 Nb Nióbio
+42 Mo Molibdênio
+43 Tc Tecnécio
+44 Ru Rutênio
+45 Rh Ródio
+46 Pd Paládio
+47 Ag Prata
+48 Cd Cádmio
+49 In Índio
+50 Sn Estanho
+51 Sb Antimônio
+52 Te Telúrio
+53 I Iodo
+54 Xe Xenônio
+55 Cs Césio
+56 Ba Bário
+57 La Lantânio
+58 Ce Cério
+59 Pr Praseodímio
+60 Nd Neodímio
+61 Pm Promécio
+62 Sm Samário
+63 Eu Európio
+64 Gd Gadolínio
+65 Tb Térbio
+66 Dy Disprósio
+67 Ho Hólmio
+68 Er Érbio
+69 Tm Túlio
+70 Yb Itérbio
+71 Lu Lutécio
+72 Hf Háfnio
+73 Ta Tântalo
+74 W Tungstênio
+75 Re Rênio
+76 Os Ósmio
+77 Ir Irídio
+78 Pt Platina
+79 Au Ouro
+80 Hg Mercúrio
+81 Tl Tálio
+82 Pb Chumbo
+83 Bi Bismuto
+84 Po Polônio
+85 At Astato
+86 Rn Radônio
+87 Fr Frâncio
+88 Ra Rádio
+89 Ac Actínio
+90 Th Tório
+91 Pa Protactínio
+92 U Urânio
+93 Np Neptúnio
+94 Pu Plutônio
+95 Am Amerício
+96 Cm Cúrio
+97 Bk Berquélio
+98 Cf Califórnio
+99 Es Einstênio
+100 Fm Férmio
+101 Md Mendelévio
+102 No Nobélio
+103 Lr Laurêncio
+104 Rf Rutherfórdio
+105 Db Dúbnio
+106 Sg Seabórgio
+107 Bh Bóhrio
+108 Hs Hássio
+109 Mt Meitnério
+110 Ds Darmstádtio
+111 Rg Roentgênio
+112 Cn Copernício
+113 Nh Nihônio
+114 Fl Fleróvio
+115 Mc Moscóvio
+116 Lv Livermório
+117 Ts Tenessino
+118 Og Oganessônio`;
+
+const RECEITAS_TXT = `H+H=h2|Gás hidrogênio|H₂|🎈|2H → H₂
 O+O=o2|Gás oxigênio|O₂|🫧|2O → O₂
 N+N=n2|Gás nitrogênio|N₂|💨|2N → N₂
 F+F=f2|Gás flúor|F₂|🟡|2F → F₂
 Cl+Cl=cl2|Gás cloro|Cl₂|🟢|2Cl → Cl₂
 Br+Br=br2|Bromo líquido|Br₂|🟤|2Br → Br₂
 I+I=i2|Iodo sólido|I₂|🟣|2I → I₂
-O+o2=o3|Ozônio|O₃|🌐|3O₂ → 2O₃
-h2+O=agua|Água|H₂O|💧
-h2+o2=h2o2|Água oxigenada|H₂O₂|🩹
-h2+n2=nh3|Amônia|NH₃|🧴
+O+o2=o3|Ozônio|O₃|🌐|O + O₂ → O₃
+h2+o2=agua|Água|H₂O|💧|2H₂ + O₂ → 2H₂O
+h2+O=agua||||2H₂ + O₂ → 2H₂O
+agua+o2=h2o2|Água oxigenada|H₂O₂|🩹|2H₂O + O₂ → 2H₂O₂
+agua+O=h2o2||||H₂O + O → H₂O₂
+h2+n2=nh3|Amônia|NH₃|🧴|3H₂ + N₂ → 2NH₃
 h2+cl2=hcl|Ácido clorídrico|HCl|🧪
 h2+f2=hf|Ácido fluorídrico|HF|🫗
 h2+br2=hbr|Ácido bromídrico|HBr|🟠
 h2+i2=hi|Ácido iodídrico|HI|🔮
 C+h2=ch4|Metano|CH₄|🔥
 h2+S=h2s|Gás sulfídrico|H₂S|🥚
-h2+Hg=h2hg|Hidreto de mercúrio (H₂Hg)|H₂Hg|🌡️
 h2+Li=lih|Hidreto de lítio|LiH|🔋
 h2+Na=nah|Hidreto de sódio|NaH|⚪
 h2+Ca=cah2|Hidreto de cálcio|CaH₂|🏔️
@@ -181,22 +979,22 @@ C+co2=co|Monóxido de carbono|CO|☁️
 co+o2=co2
 S+o2=so2|Dióxido de enxofre|SO₂|🌋
 so2+o2=so3|Trióxido de enxofre|SO₃|🟨
-n2+o2=no|Óxido nítrico|NO|🟠
+n2+o2=no|Monóxido de nitrogênio|NO|🟠
 no+o2=no2|Dióxido de nitrogênio|NO₂|🟤
 Ca+o2=cao|Cal virgem|CaO|🪨
 Mg+o2=mgo|Óxido de magnésio|MgO|✨
-Fe+o2=ferrugem|Ferrugem|Fe₂O₃|🟫
+Fe+o2=ferrugem|Ferrugem (Óxido de ferro III)|Fe₂O₃|🟫
 Al+o2=alumina|Alumina|Al₂O₃|💎
 Si+o2=silica|Sílica|SiO₂|🏖️
 Zn+o2=zno|Óxido de zinco|ZnO|☀️
 Ti+o2=tio2|Dióxido de titânio|TiO₂|🤍
-Cu+o2=cuo|Óxido de cobre|CuO|⚫
-Cr+o2=cr2o3|Verde de cromo|Cr₂O₃|🌿
+Cu+o2=cuo|Óxido de cobre(II)|CuO|⚫
+Cr+o2=cr2o3|Óxido de cromo(III)|Cr₂O₃|🌿
 Mn+o2=mno2|Dióxido de manganês|MnO₂|🔋
 P+o2=p2o5|Pentóxido de fósforo|P₄O₁₀|⬜
 Zr+o2=zro2|Zircônia|ZrO₂|💠
-Co+o2=coo|Óxido de cobalto|CoO|🔹
-Ni+o2=nio|Óxido de níquel|NiO|🟩
+Co+o2=coo|Óxido de cobalto(II)|CoO|🔹
+Ni+o2=nio|Óxido de níquel(II)|NiO|🟩
 Na+o2=na2o|Óxido de sódio|Na₂O|🔆
 K+o2=k2o|Óxido de potássio|K₂O|🌱
 Li+o2=li2o|Óxido de lítio|Li₂O|🪫
@@ -204,9 +1002,9 @@ Ba+o2=bao|Óxido de bário|BaO|🎇
 B+o2=b2o3|Óxido de boro|B₂O₃|🔶
 V+o2=v2o5|Pentóxido de vanádio|V₂O₅|🟧
 W+o2=wo3|Trióxido de tungstênio|WO₃|🟡
-Pb+o2=pbo|Óxido de chumbo|PbO|🟥
+Pb+o2=pbo|Óxido de chumbo(II)|PbO|🟥
 Sn+o2=sno2|Dióxido de estanho|SnO₂|🥫
-Hg+o2=hgo|Óxido de mercúrio|HgO|🔴
+Hg+o2=hgo|Óxido de mercúrio(II)|HgO|🔴
 Bi+o2=bi2o3|Óxido de bismuto|Bi₂O₃|🌤️
 agua+so3=h2so4|Ácido sulfúrico|H₂SO₄|⚗️
 agua+so2=h2so3|Ácido sulfuroso|H₂SO₃|🌧️
@@ -219,12 +1017,14 @@ Na+agua=naoh|Soda cáustica|NaOH|🧼|2Na + 2H₂O → 2NaOH + H₂
 K+agua=koh|Hidróxido de potássio|KOH|🧽|2K + 2H₂O → 2KOH + H₂
 Li+agua=lioh|Hidróxido de lítio|LiOH|🚀|2Li + 2H₂O → 2LiOH + H₂
 Ba+agua=baoh2|Hidróxido de bário|Ba(OH)₂|🧂|Ba + 2H₂O → Ba(OH)₂ + H₂
+Ca+agua=caoh2||||Ca + 2H₂O → Ca(OH)₂ + H₂
+Mg+agua=mgoh2||||Mg + 2H₂O → Mg(OH)₂ + H₂
 agua+cao=caoh2|Cal hidratada|Ca(OH)₂|🏗️
 agua+mgo=mgoh2|Leite de magnésia|Mg(OH)₂|🥛
 agua+na2o=naoh
 agua+k2o=koh
 agua+bao=baoh2
-agua+nh3=nh4oh|Hidróxido de amônio|NH₄OH|🧹
+agua+nh3=nh4oh|Amônia aquosa|NH₃(aq)|🧹|NH₃ + H₂O ⇌ NH₄⁺ + OH⁻
 Na+cl2=sal|Sal de cozinha|NaCl|🧂
 hcl+naoh=sal||||HCl + NaOH → NaCl + H₂O
 K+cl2=kcl|Cloreto de potássio|KCl|🍌
@@ -232,7 +1032,7 @@ Ca+cl2=cacl2|Cloreto de cálcio|CaCl₂|❄️
 Mg+cl2=mgcl2|Cloreto de magnésio|MgCl₂|🌊
 Al+cl2=alcl3|Cloreto de alumínio|AlCl₃|🧊
 Fe+cl2=fecl3|Cloreto férrico|FeCl₃|🟠
-Cu+cl2=cucl2|Cloreto de cobre|CuCl₂|🟢
+Cu+cl2=cucl2|Cloreto de cobre(II)|CuCl₂|🟢
 Zn+cl2=zncl2|Cloreto de zinco|ZnCl₂|🔩
 Ag+cl2=agcl|Cloreto de prata|AgCl|⚪
 Na+br2=nabr|Brometo de sódio|NaBr|🏊
@@ -245,29 +1045,31 @@ Al+f2=alf3|Fluoreto de alumínio|AlF₃|🏭
 Xe+f2=xef2|Difluoreto de xenônio|XeF₂|🪩
 Kr+f2=krf2|Difluoreto de criptônio|KrF₂|🧿
 hcl+nh3=nh4cl|Cloreto de amônio|NH₄Cl|🌬️
-cuo+h2so4=cuso4|Sulfato de cobre|CuSO₄|🔵|CuO + H₂SO₄ → CuSO₄ + H₂O
+cuo+h2so4=cuso4|Sulfato de cobre(II)|CuSO₄|🔵|CuO + H₂SO₄ → CuSO₄ + H₂O
 Ba+h2so4=baso4|Sulfato de bário|BaSO₄|🩻|Ba + H₂SO₄ → BaSO₄ + H₂
 Zn+h2so4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + H₂SO₄ → ZnSO₄ + H₂
 Mg+h2so4=mgso4|Sal de Epsom|MgSO₄|🛁|Mg + H₂SO₄ → MgSO₄ + H₂
-Fe+h2so4=feso4|Sulfato de ferro|FeSO₄|🟩|Fe + H₂SO₄ → FeSO₄ + H₂
-Ca+h2so4=caso4|Gesso|CaSO₄|🧱|Ca + H₂SO₄ → CaSO₄ + H₂
+Fe+h2so4=feso4|Sulfato de ferro(II)|FeSO₄|🟩|Fe + H₂SO₄ → FeSO₄ + H₂
+Ca+h2so4=caso4|Sulfato de cálcio|CaSO₄|🧱|Ca + H₂SO₄ → CaSO₄ + H₂
 naoh+h2so4=na2so4|Sulfato de sódio|Na₂SO₄|🧺|2NaOH + H₂SO₄ → Na₂SO₄ + 2H₂O
 cao+co2=caco3|Calcário|CaCO₃|🐚
 caoh2+co2=caco3||||Ca(OH)₂ + CO₂ → CaCO₃ + H₂O
-naoh+co2=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaOH + CO₂ → Na₂CO₃ + H₂O
-h2co3+na2co3=nahco3|Bicarbonato de sódio|NaHCO₃|🍰
+naoh+co2=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaOH + CO₂ → Na₂CO₃ + H₂O|2NaOH + CO₂ → Na₂CO₃ + H₂O
+h2co3+na2co3=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|H₂CO₃ + Na₂CO₃ → 2NaHCO₃
 Ca+h3po4=ca3po42|Fosfato de cálcio|Ca₃(PO₄)₂|🦴|3Ca + 2H₃PO₄ → Ca₃(PO₄)₂ + 3H₂
 Ag+hno3=agno3|Nitrato de prata|AgNO₃|🪞|3Ag + 4HNO₃ → 3AgNO₃ + NO + 2H₂O
-Cu+hno3=cuno32|Nitrato de cobre|Cu(NO₃)₂|🟦|3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
-caco3+silica=vidro|Vidro|SiO₂ amorfo|🪟|CaCO₃ + SiO₂ → vidro + CO₂
+Cu+hno3=cuno32|Nitrato de cobre(II)|Cu(NO₃)₂|🟦|3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
+na2co3+silica=vidro|Silicato de sódio|Na₂SiO₃|🪟|Na₂CO₃ + SiO₂ → Na₂SiO₃ + CO₂
+caco3+silica=casio3|Silicato de cálcio|CaSiO₃|🧱|CaCO₃ + SiO₂ → CaSiO₃ + CO₂
+caco3+vidro=casio3||||CaCO₃ + Na₂SiO₃ → CaSiO₃ + Na₂CO₃
 Ag+S=ag2s|Sulfeto de prata|Ag₂S|🖤
 Hg+S=hgs|Cinábrio|HgS|🩸
 Pb+S=pbs|Galena|PbS|⛏️
 Cd+S=cds|Amarelo de cádmio|CdS|🌻
 Zn+S=zns|Sulfeto de zinco|ZnS|🌟
-Fe+S=fes|Sulfeto de ferro|FeS|⛓️
+Fe+S=fes|Sulfeto de ferro(II)|FeS|⛓️
 fes+S=pirita|Pirita|FeS₂|✨
-Cu+S=cus|Sulfeto de cobre|CuS|🫐
+Cu+S=cus|Sulfeto de cobre(II)|CuS|🫐
 Mo+S=mos2|Dissulfeto de molibdênio|MoS₂|🛢️
 Sb+S=sb2s3|Estibinita|Sb₂S₃|💫
 Ga+n2=gan|Nitreto de gálio|GaN|💡
@@ -295,7 +1097,9 @@ nh3+co2=ureia|Ureia|CO(NH₂)₂|🌾|2NH₃ + CO₂ → CO(NH₂)₂ + H₂O
 Na+Hg=namalgama|Amálgama de sódio|Na–Hg|🔘
 ch3cl+namalgama=dmhg|Dimetilmercúrio|(CH₃)₂Hg|☠️|2CH₃Cl + 2Na + Hg → (CH₃)₂Hg + 2NaCl
 C+Fe=aco|Aço|Fe–C|⚙️
-Cr+aco=inox|Aço inoxidável|Fe–Cr–Ni|🍴
+Cr+Ni=nicromo|Nicromo|Ni–Cr|🍞
+nicromo+aco=inox|Aço inoxidável|Fe–Cr–Ni|🍴
+Cr+aco=inox||||Fe–C + Cr → Aço inoxidável
 Cu+Sn=bronze|Bronze|Cu–Sn|🔔
 Cu+Zn=latao|Latão|Cu–Zn|🎺
 Au+Cu=ourorose|Ouro rosé|Au–Cu|🌹
@@ -307,267 +1111,1036 @@ Al+Mg=magnalio|Magnálio|Al–Mg|✈️
 Al+Sc=alsc|Liga alumínio-escândio|Al–Sc|🚲
 Bi+Sn=ligafusivel|Liga fusível|Bi–Sn|🫠
 Cu+Ni=cuproniquel|Cuproníquel|Cu–Ni|🪙
-Al+Cu=duralumin|Duralumínio|Al–Cu–Mg|🛩️
+magnalio+Cu=duralumin|Duralumínio|Al–Cu–Mg|🛩️
+Al+Cu=duralumin||||Al + Cu → Duralumínio
 Ag+Cu=pratalei|Prata de lei|Ag–Cu|🍽️
 Ag+Au=electrum|Electrum|Au–Ag|🏺
 Au+Hg=amalgama|Amálgama de ouro|Au–Hg|🥈
 Fe+Ni=invar|Invar|Fe–Ni|🕰️
-Cr+Ni=nicromo|Nicromo|Ni–Cr|🍞
 Nb+Ti=nbti|Nióbio-titânio|Nb–Ti|🧲
 Be+Cu=cube|Cobre-berílio|Cu–Be|🔧
 K+Na=nak|Liga sódio-potássio|Na–K|🫗
 Pt+Rh=ptrh|Liga platina-ródio|Pt–Rh|🚗
-coo+alumina=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷`;
+coo+alumina=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷
+nh3+hno3=nh4no3|Nitrato de amônio|NH₄NO₃|🌾|NH₃ + HNO₃ → NH₄NO₃
+hcl+nahco3=sal||||HCl + NaHCO₃ → NaCl + CO₂ + H₂O
+caco3+hcl=cacl2||||CaCO₃ + 2HCl → CaCl₂ + CO₂ + H₂O
+etanol+acetico=acetatoetila|Acetato de etila|CH₃COOC₂H₅|🍓|C₂H₅OH + CH₃COOH → CH₃COOC₂H₅ + H₂O
+hcl+Mg=mgcl2|Cloreto de magnésio|MgCl₂|🌊|Mg + 2HCl → MgCl₂ + H₂
+hcl+Zn=zncl2|Cloreto de zinco|ZnCl₂|🔩|Zn + 2HCl → ZnCl₂ + H₂
+hcl+Fe=fecl2|Cloreto de ferro(II)|FeCl₂|🟩|Fe + 2HCl → FeCl₂ + H₂
+hcl+Al=alcl3|Cloreto de alumínio|AlCl₃|🧊|2Al + 6HCl → 2AlCl₃ + 3H₂
+hcl+Ca=cacl2|Cloreto de cálcio|CaCl₂|❄️|Ca + 2HCl → CaCl₂ + H₂
+hcl+koh=kcl|Cloreto de potássio|KCl|🍌|HCl + KOH → KCl + H₂O
+hcl+caoh2=cacl2|Cloreto de cálcio|CaCl₂|❄️|Ca(OH)₂ + 2HCl → CaCl₂ + 2H₂O
+hcl+baoh2=bacl2|Cloreto de bário|BaCl₂|🧪|Ba(OH)₂ + 2HCl → BaCl₂ + 2H₂O
+hno3+naoh=nano3|Nitrato de sódio|NaNO₃|🧂|HNO₃ + NaOH → NaNO₃ + H₂O
+hno3+koh=kno3|Nitrato de potássio|KNO₃|✨|HNO₃ + KOH → KNO₃ + H₂O
+h2so4+koh=k2so4|Sulfato de potássio|K₂SO₄|🌾|H₂SO₄ + 2KOH → K₂SO₄ + 2H₂O
+h3po4+naoh=na3po4|Fosfato de sódio|Na₃PO₄|⚪|H₃PO₄ + 3NaOH → Na₃PO₄ + 3H₂O
+h2so4+baoh2=baso4|Sulfato de bário|BaSO₄|🩻|H₂SO₄ + Ba(OH)₂ → BaSO₄↓ + 2H₂O
+h2so4+caoh2=caso4|Sulfato de cálcio|CaSO₄|🧱|H₂SO₄ + Ca(OH)₂ → CaSO₄ + 2H₂O
+h2so4+nahco3=na2so4|Sulfato de sódio|Na₂SO₄|🧺|H₂SO₄ + 2NaHCO₃ → Na₂SO₄ + 2CO₂ + 2H₂O
+h2co3+naoh=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|H₂CO₃ + NaOH → NaHCO₃ + H₂O
+nh3+h2so4=amonsulfato|Sulfato de amônio|(NH₄)₂SO₄|🌾|2NH₃ + H₂SO₄ → (NH₄)₂SO₄
+nh4cl+naoh=nh3|Amônia|NH₃|🧹|NH₄Cl + NaOH → NH₃ + NaCl + H₂O
+na2co3+hcl=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|Na₂CO₃ + HCl → NaHCO₃ + NaCl
+nahco3+nahco3=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaHCO₃ → Na₂CO₃ + CO₂ + H₂O
+h2o2+h2o2=agua|Água|H₂O|💧|2H₂O₂ → 2H₂O + O₂
+bacl2+na2so4=baso4|Sulfato de bário|BaSO₄|🩻|BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl
+agno3+sal=agcl|Cloreto de prata|AgCl|⚪|AgNO₃ + NaCl → AgCl↓ + NaNO₃
+cuso4+naoh=cuoh2|Hidróxido de cobre(II)|Cu(OH)₂|🔵|CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄
+feso4+naoh=feoh2|Hidróxido de ferro(II)|Fe(OH)₂|🟢|FeSO₄ + 2NaOH → Fe(OH)₂↓ + Na₂SO₄
+fecl3+naoh=feoh3|Hidróxido de ferro(III)|Fe(OH)₃|🟤|FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl
+alcl3+naoh=aloh3|Hidróxido de alumínio|Al(OH)₃|⚪|AlCl₃ + 3NaOH → Al(OH)₃↓ + 3NaCl
+znso4+naoh=znoh2|Hidróxido de zinco|Zn(OH)₂|⚪|ZnSO₄ + 2NaOH → Zn(OH)₂↓ + Na₂SO₄
+mgcl2+na2co3=mgco3|Carbonato de magnésio|MgCO₃|⚪|MgCl₂ + Na₂CO₃ → MgCO₃↓ + 2NaCl
+cacl2+na2co3=caco3|Carbonato de cálcio|CaCO₃|🐚|CaCl₂ + Na₂CO₃ → CaCO₃↓ + 2NaCl
+caso4+na2co3=caco3|Carbonato de cálcio|CaCO₃|🐚|CaSO₄ + Na₂CO₃ → CaCO₃↓ + Na₂SO₄
+cuso4+bacl2=baso4|Sulfato de bário|BaSO₄|🩻|CuSO₄ + BaCl₂ → BaSO₄↓ + CuCl₂
+ch4+o2=co2|Dióxido de carbono|CO₂|🌫️|CH₄ + 2O₂ → CO₂ + 2H₂O
+etanol+o2=co2|Dióxido de carbono|CO₂|🌫️|C₂H₅OH + 3O₂ → 2CO₂ + 3H₂O
+metanol+o2=co2|Dióxido de carbono|CO₂|🌫️|2CH₃OH + 3O₂ → 2CO₂ + 4H₂O
+c2h2+o2=co2|Dióxido de carbono|CO₂|🌫️|2C₂H₂ + 5O₂ → 4CO₂ + 2H₂O
+c2h4+o2=co2|Dióxido de carbono|CO₂|🌫️|C₂H₄ + 3O₂ → 2CO₂ + 2H₂O
+c2h6+o2=co2|Dióxido de carbono|CO₂|🌫️|2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O
+hcho+o2=co2|Dióxido de carbono|CO₂|🌫️|HCHO + O₂ → CO₂ + H₂O
+Ca+S=cas|Sulfeto de cálcio|CaS|💎|Ca + S → CaS
+Mg+S=mgs|Sulfeto de magnésio|MgS|🌟|Mg + S → MgS
+Al+S=al2s3|Sulfeto de alumínio|Al₂S₃|🟨|2Al + 3S → Al₂S₃
+Na+S=na2s|Sulfeto de sódio|Na₂S|🧂|2Na + S → Na₂S
+Li+n2=li3n|Nitreto de lítio|Li₃N|🔋|6Li + N₂ → 2Li₃N
+Mg+n2=mg3n2|Nitreto de magnésio|Mg₃N₂|✨|3Mg + N₂ → Mg₃N₂
+Ca+n2=ca3n2|Nitreto de cálcio|Ca₃N₂|🧱|3Ca + N₂ → Ca₃N₂
+Si+cl2=sicl4|Tetracloreto de silício|SiCl₄|🌫️|Si + 2Cl₂ → SiCl₄
+P+cl2=pcl3|Tricloreto de fósforo|PCl₃|⚗️|P₄ + 6Cl₂ → 4PCl₃
+B+f2=bf3|Trifluoreto de boro|BF₃|🧪|2B + 3F₂ → 2BF₃
+C+cl2=ccl4|Tetracloreto de carbono|CCl₄|🧪|C + 2Cl₂ → CCl₄
+Zn+cuso4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + CuSO₄ → ZnSO₄ + Cu
+Fe+cuso4=feso4|Sulfato de ferro(II)|FeSO₄|🟩|Fe + CuSO₄ → FeSO₄ + Cu
+Cu+agno3=cuno32|Nitrato de cobre(II)|Cu(NO₃)₂|🟦|Cu + 2AgNO₃ → Cu(NO₃)₂ + 2Ag
+cuo+h2=Cu|Cobre|Cu|🟠|CuO + H₂ → Cu + H₂O
+ferrugem+co=Fe|Ferro|Fe|⚙️|Fe₂O₃ + 3CO → 2Fe + 3CO₂
+ferrugem+C=Fe|Ferro|Fe|⚙️|2Fe₂O₃ + 3C → 4Fe + 3CO₂
+Hf+o2=hfo2|Óxido de háfnio|HfO₂|💠|Hf + O₂ → HfO₂
+Ta+o2=ta2o5|Pentóxido de tântalo|Ta₂O₅|💎|4Ta + 5O₂ → 2Ta₂O₅
+La+o2=la2o3|Óxido de lantânio|La₂O₃|🔆|4La + 3O₂ → 2La₂O₃
+Ce+o2=ceo2|Dióxido de cério|CeO₂|✨|Ce + O₂ → CeO₂
+Nd+o2=nd2o3|Óxido de neodímio|Nd₂O₃|🟪|4Nd + 3O₂ → 2Nd₂O₃`;
 
-// ===================== PREPARO =====================
-const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-const ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){}};
-const DB={},REC={},ELS=[],SUBS=[];                 // DB: id -> {s: símbolo/emoji, n: nome, sub: fórmula/nº}
-const chave=(a,b)=>[a,b].sort().join('+');        // ordem dos ingredientes não importa
-ELEMENTOS.split(/[|\n]/).map(s=>s.trim()).filter(Boolean).forEach(s=>{
-  const[n,sy,nm]=s.split(' ');DB[sy]={id:sy,s:sy,n:nm,num:+n,sub:'nº '+n,el:1};ELS.push(sy)});
-const EQ={},ORD={};                                 // equações explícitas (com subprodutos) e ordem original dos reagentes
-RECEITAS.split('\n').map(s=>s.trim()).filter(Boolean).forEach(l=>{
-  const[ing,res]=l.split('='),[id,nome,f,em,eq]=res.split('|'),[a,b]=ing.split('+'),k=chave(a,b);
-  if(nome&&!DB[id]){DB[id]={id,s:em,n:nome,sub:f};SUBS.push(id)}
-  REC[k]=id;ORD[k]=[a,b];if(eq)EQ[k]=eq});
+// =========================================================================
+// BANCO DE DADOS & FUNÇÕES QUÍMICAS
+// =========================================================================
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const ls = (k, v) => { try { return v === undefined ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch(e){} };
 
-let found=[];                                       // substâncias descobertas (em ordem)
-try{found=JSON.parse(ls('qf.found')||'[]').filter(i=>DB[i]&&!DB[i].el)}catch(e){}
-const mesa=$('#mesa'),root=document.documentElement,still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-let z=10,tm,mols=[],tocou=0;
-const norm=t=>t.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const DB = {};
+const REC = {};
+const EQ = {};
+const ORD = {};
+const ELS = [];
+const SUBS = [];
 
-// ===================== PAINEL LATERAL =====================
-function painel(novo){
-  const q=norm($('#q').value.trim()),
-  ok=d=>!q||norm(d.n).includes(q)||(d.el?norm(d.s).startsWith(q)||d.num==q:norm(d.sub).includes(q)),
-  lin=d=>`<button class="row${d.id===novo?' new':''}" data-id="${d.id}"><span class="s">${d.s}</span><span><b>${d.n}</b><small>${d.sub}</small></span></button>`,
-  e=ELS.map(i=>DB[i]).filter(ok),s=found.map(i=>DB[i]).filter(ok);
-  $('#lista').innerHTML=(e.length?'<div class="sep">Elementos</div>'+e.map(lin).join(''):'')
-    +(s.length?'<div class="sep">Substâncias descobertas</div>'+s.map(lin).join(''):'')||'<div class="sep">Nada encontrado.</div>';
-  $('#cont').textContent=`Descobertas: ${found.length} / ${SUBS.length}`;
-  if(novo)$('.new')?.scrollIntoView({block:'nearest',behavior:'smooth'});
+const chave = (a, b) => [a, b].sort().join('+');
+
+function deduzirCategoria(id, sub, el) {
+  if (el) return 'elementos';
+  if (sub.includes('–')) return 'ligas';
+  const subLower = sub.toLowerCase();
+  if (id.startsWith('h2so') || id.startsWith('hno') || id.startsWith('hcl') || id.startsWith('hf') || id.startsWith('hbr') || id.startsWith('hi') || id.startsWith('h3po') || id.startsWith('h2co') || id.startsWith('h3bo') || id.startsWith('h2wo') || id === 'acetico') return 'acidos';
+  if (/oh\d*$/.test(id)) return 'acidos';
+  if (id.startsWith('c2h') || id.startsWith('c6h') || id === 'ch4' || id === 'metanol' || id === 'etanol' || id === 'hcho' || id === 'ureia' || id === 'dmhg' || id.startsWith('acetato')) return 'organicos';
+  return 'sais';
 }
 
-// ===================== EQUAÇÕES QUÍMICAS =====================
-const DIA=['H','N','O','F','Cl','Br','I'];          // elementos que reagem como moléculas diatômicas (X₂)
-const forma=i=>DB[i].el?(DIA.includes(i)?i+'₂':i):DB[i].sub;
-function conta(f){                                  // "Ca(OH)₂" -> {Ca:1,O:2,H:2}
-  const st=[{}],re=/([A-Z][a-z]?)(\d*)|(\()|\)(\d*)/g;let m;
-  f=f.replace(/[₀-₉]/g,c=>c.charCodeAt(0)-8320);
-  while(m=re.exec(f)){
-    if(m[1]){const o=st[st.length-1];o[m[1]]=(o[m[1]]||0)+(+m[2]||1)}
-    else if(m[3])st.push({});
-    else{const o=st.pop(),k=+m[4]||1,p=st[st.length-1];for(const e in o)p[e]=(p[e]||0)+o[e]*k}
+ELEMENTOS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+  const [num, sy, nm] = l.split(' ');
+  DB[sy] = { id: sy, s: sy, n: nm, num: +num, sub: 'nº ' + num, el: 1, cat: 'elementos' };
+  ELS.push(sy);
+});
+
+RECEITAS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+  const [ing, res] = l.split('=');
+  const [id, nome, f, em, eq] = res.split('|');
+  const [a, b] = ing.split('+');
+  const k = chave(a, b);
+  if (nome && !DB[id]) {
+    DB[id] = { id, s: em, n: nome, sub: f, cat: deduzirCategoria(id, f, false) };
+    SUBS.push(id);
+  }
+  REC[k] = id;
+  ORD[k] = [a, b];
+  if (eq) EQ[k] = eq;
+});
+
+const forma = i => DB[i].el ? DB[i].s : DB[i].sub;
+
+function conta(f) {
+  const st = [{}], re = /([A-Z][a-z]?)(\d*)|(\()|\)(\d*)/g;
+  let m;
+  f = f.replace(/[₀-₉]/g, c => c.charCodeAt(0) - 8320);
+  while (m = re.exec(f)) {
+    if (m[1]) {
+      const o = st[st.length - 1];
+      o[m[1]] = (o[m[1]] || 0) + (+m[2] || 1);
+    } else if (m[3]) {
+      st.push({});
+    } else {
+      const o = st.pop(), k = +m[4] || 1, p = st[st.length - 1];
+      for (const e in o) p[e] = (p[e] || 0) + o[e] * k;
+    }
   }
   return st[0];
 }
-function equacao(a,b,id){                           // ex.: "2H₂ + O₂ → 2H₂O" (explícita ou balanceada automaticamente)
-  const k=chave(a,b);if(EQ[k])return EQ[k];
-  const rs=ORD[k].map(forma),p=DB[id].sub,n=c=>c>1?c:'';
-  if(p.includes('–'))return rs.join(' + ')+' → '+DB[id].n;     // ligas: sem balanceamento
-  try{
-    const C=[...rs,p].map(conta),el=new Set(C.flatMap(Object.keys));let best,min=99;
-    for(let x=1;x<9;x++)for(let y=1;y<9;y++)for(let w=1;w<9;w++)
-      if(x+y+w<min&&[...el].every(e=>x*(C[0][e]|0)+y*(C[1][e]|0)==w*(C[2][e]|0))){min=x+y+w;best=[x,y,w]}
-    if(best)return n(best[0])+rs[0]+' + '+n(best[1])+rs[1]+' → '+n(best[2])+p;
-  }catch(e){}
-  return rs.join(' + ')+' → '+p;
-}
-let te;
-function mostraEq(eq,nova,d){                       // mostra a equação por ~6 s; destaque se for descoberta nova
-  const e=$('#eqn');e.className=nova?'on nv':'on';
-  e.innerHTML=`<small>${nova?'✨ Nova descoberta: ':''}${d.s} ${d.n}</small><span>${eq}</span>`;
-  clearTimeout(te);te=setTimeout(()=>e.className='',6000);
-}
 
-// ===================== ITENS NA MESA =====================
-const dica=()=>{$('#dica').style.opacity=$('.item')?0:1};
-function aviso(t){const e=$('#aviso');e.textContent=t;e.classList.add('on');clearTimeout(tm);tm=setTimeout(()=>e.classList.remove('on'),1800)}
-function criar(id,x,y,cls=''){                     // cria um item centrado em (x, y)
-  const d=DB[id],el=document.createElement('div');
-  el.className='item '+cls;el.dataset.id=id;
-  el.innerHTML=`<span class="s">${d.s}</span><b>${d.n}</b><small>${d.sub}</small>`;
-  document.body.append(el);
-  el.style.left=x-el.offsetWidth/2+'px';el.style.top=y-el.offsetHeight/2+'px';el.style.zIndex=++z;
-  el.onpointerdown=e=>{if(!e.button){e.preventDefault();arrastar(el,e)}};
-  el.oncontextmenu=e=>{e.preventDefault();el.remove();dica()};   // clique direito remove
-  dica();return el;
-}
-function aleatorio(el){                             // posição aleatória dentro da mesa
-  const m=mesa.getBoundingClientRect();
-  el.style.left=m.left+30+Math.random()*Math.max(10,m.width-170)+'px';
-  el.style.top=m.top+60+Math.random()*Math.max(10,m.height-160)+'px';
-}
-function adicionar(id){aleatorio(criar(id,0,0,'pop'))}
-function perto(el){                                 // item mais próximo (candidato à reação)
-  const a=el.getBoundingClientRect();let best=null,bd=76;
-  $$('.item').forEach(o=>{if(o===el)return;const b=o.getBoundingClientRect(),
-    d=Math.hypot(a.left+a.width/2-b.left-b.width/2,a.top+a.height/2-b.top-b.height/2);
-    if(d<bd){bd=d;best=o}});
-  return best;
-}
-function arrastar(el,e,doPainel){
-  const r=el.getBoundingClientRect(),dx=e.clientX-r.left,dy=e.clientY-r.top,sx=e.clientX,sy=e.clientY;let moveu=0;
-  el.setPointerCapture(e.pointerId);el.style.zIndex=++z;el.classList.add('arr');
-  el.onpointermove=v=>{
-    if(Math.abs(v.clientX-sx)+Math.abs(v.clientY-sy)>4)moveu=1;
-    el.style.left=v.clientX-dx+'px';el.style.top=v.clientY-dy+'px';
-    $$('.hot').forEach(x=>x.classList.remove('hot'));perto(el)?.classList.add('hot');
-  };
-  el.onpointerup=el.onpointercancel=()=>{
-    el.onpointermove=el.onpointerup=el.onpointercancel=null;el.classList.remove('arr');
-    $$('.hot').forEach(x=>x.classList.remove('hot'));
-    if(doPainel&&!moveu){aleatorio(el);el.classList.add('pop')}   // clique simples no painel
-    else soltar(el);
-  };
-}
-function soltar(el){
-  const r=el.getBoundingClientRect(),m=mesa.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
-  if(cx<m.left||cx>m.right||cy<m.top||cy>m.bottom){el.remove();dica();return}   // fora da mesa: descarta
-  const o=perto(el);if(o)combinar(el,o);
-}
-function combinar(a,b){
-  const id=REC[chave(a.dataset.id,b.dataset.id)];
-  if(!id){aviso(`Sem reação: ${DB[a.dataset.id].n} + ${DB[b.dataset.id].n}`);a.classList.add('sh');setTimeout(()=>a.classList.remove('sh'),350);return}
-  const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect(),d=DB[id];
-  const x=(ra.left+ra.width/2+rb.left+rb.width/2)/2,y=(ra.top+ra.height/2+rb.top+rb.height/2)/2;
-  const nova=!found.includes(id),eq=equacao(a.dataset.id,b.dataset.id,id);
-  a.remove();b.remove();criar(id,x,y,nova?'pop nova':'pop');
-  mostraEq(eq,nova,d);
-  if(nova){found.push(id);ls('qf.found',JSON.stringify(found));painel(id)}
-}
-
-// ===================== FUNDO: MOLÉCULAS FLUTUANTES =====================
-const cv=$('#fundo'),cx=cv.getContext('2d');let W=0,H=0;
-function ajusta(){const r=devicePixelRatio||1;W=cv.clientWidth;H=cv.clientHeight;cv.width=W*r;cv.height=H*r;cx.setTransform(r,0,0,r,0,0);if(still)quadro()}
-function nova(){                                    // molécula de 2 a 4 átomos ligados
-  const n=2+Math.random()*3|0,at=[{x:0,y:0,r:7+Math.random()*7}];
-  for(let i=1;i<n;i++){const p=at[Math.random()*i|0],a=Math.random()*6.28,d=26+Math.random()*16;
-    at.push({x:p.x+Math.cos(a)*d,y:p.y+Math.sin(a)*d,r:5+Math.random()*7,p})}
-  return{x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,a:Math.random()*6.28,va:(Math.random()-.5)*.004,at};
-}
-function quadro(){
-  cx.clearRect(0,0,W,H);
-  cx.fillStyle=cx.strokeStyle=root.dataset.theme=='dark'?'rgba(170,215,205,.17)':'rgba(120,120,120,.3)';cx.lineWidth=3;
-  for(const m of mols){
-    m.x+=m.vx;m.y+=m.vy;m.a+=m.va;
-    if(m.x<-90)m.x=W+90;if(m.x>W+90)m.x=-90;if(m.y<-90)m.y=H+90;if(m.y>H+90)m.y=-90;
-    const c=Math.cos(m.a),s=Math.sin(m.a),P=q=>[m.x+q.x*c-q.y*s,m.y+q.x*s+q.y*c];
-    for(const q of m.at){const[x,y]=P(q);
-      if(q.p){const[px,py]=P(q.p);cx.beginPath();cx.moveTo(px,py);cx.lineTo(x,y);cx.stroke()}
-      cx.beginPath();cx.arc(x,y,q.r,0,6.283);cx.fill()}
-  }
-  if(!still)requestAnimationFrame(quadro);
-}
-
-// ===================== MÚSICA DE FUNDO (sintetizada no navegador, sem arquivos) =====================
-const ACORDES=[[220,261.6,329.6],[174.6,220,261.6],[261.6,329.6,392],[196,246.9,293.7]]; // Lá m, Fá, Dó, Sol (Hz)
-const ESCALA=[440,523.3,587.3,659.3,784,880];       // notas dos "sinos" (pentatônica de Lá menor)
-let au,mestre,passo=0,vol=+(ls('qf.vol')??40),mudo=ls('qf.mudo')=='1';
-function volume(){if(mestre)mestre.gain.setTargetAtTime(mudo?0:vol/100,au.currentTime,.1)}
-function musica(){                                  // navegadores só liberam o áudio após um clique/toque
-  if(au)return au.state=='suspended'&&au.resume();
-  au=new(window.AudioContext||window.webkitAudioContext)();
-  mestre=au.createGain();
-  const f=au.createBiquadFilter(),d=au.createDelay(),fb=au.createGain(),w=au.createGain();
-  f.type='lowpass';f.frequency.value=1800;d.delayTime.value=.5;fb.gain.value=.4;w.gain.value=.35;
-  f.connect(mestre);f.connect(d);d.connect(fb);fb.connect(d);d.connect(w);w.connect(mestre);mestre.connect(au.destination);
-  volume();
-  const nota=(hz,t,dur,v,tipo)=>{
-    const o=au.createOscillator(),g=au.createGain();o.type=tipo;o.frequency.value=hz;
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+dur*.3);g.gain.linearRampToValueAtTime(0,t+dur);
-    o.connect(g);g.connect(f);o.start(t);o.stop(t+dur)};
-  (function tique(){
-    if(au.state=='running'){
-      const t=au.currentTime+.05;
-      if(passo%16==0)ACORDES[passo/16%4].forEach(hz=>nota(hz,t,11,.12,'sine'));      // novo acorde a cada ~9,6 s
-      if(Math.random()<.55)nota(ESCALA[Math.random()*6|0],t,2.4,.07,'triangle');    // "sino" ocasional
-      passo++;
+function equacao(a, b, id) {
+  const k = chave(a, b);
+  if (EQ[k]) return EQ[k];
+  const rs = ORD[k].map(forma), p = DB[id].sub, n = c => c > 1 ? c : '';
+  if (p.includes('–')) return rs.join(' + ') + ' → ' + DB[id].n;
+  try {
+    const C = [...rs, p].map(conta), el = new Set(C.flatMap(Object.keys));
+    let best, min = 99;
+    for (let x = 1; x < 9; x++) {
+      for (let y = 1; y < 9; y++) {
+        for (let w = 1; w < 9; w++) {
+          if (x + y + w < min && [...el].every(e => x * (C[0][e] || 0) + y * (C[1][e] || 0) === w * (C[2][e] || 0))) {
+            min = x + y + w;
+            best = [x, y, w];
+          }
+        }
+      }
     }
-    setTimeout(tique,600);
+    if (best) return n(best[0]) + rs[0] + ' + ' + n(best[1]) + rs[1] + ' → ' + n(best[2]) + p;
+  } catch (e) {}
+  return rs.join(' + ') + ' → ' + p;
+}
+
+let found = [];
+try {
+  found = JSON.parse(ls('qf.found') || '[]').filter(i => DB[i] && !DB[i].el);
+} catch (e) {}
+
+// Liberação temporária do Modo Estudo: nunca é gravada no armazenamento.
+let modoEstudo = false;
+const formulaConcluida = id => modoEstudo || found.includes(id);
+const idsConcluidos = () => modoEstudo ? SUBS : found;
+
+let historico = [];
+
+// =========================================================================
+// SISTEMA DE ÁUDIO WEB AUDIO API
+// =========================================================================
+let audioCtx = null, mestreMusica = null, mestreSfx = null;
+let volBgm = +(ls('qf.volBgm') ?? 35);
+let volSfx = +(ls('qf.volSfx') ?? 70);
+let bgmMudo = ls('qf.bgmMudo') === '1';
+let sfxMudo = ls('qf.sfxMudo') === '1';
+let musicaIniciada = false, passoMusica = 0;
+
+const ACORDES_BGM = [
+  [220, 261.6, 329.6],
+  [174.6, 220, 261.6],
+  [261.6, 329.6, 392],
+  [196, 246.9, 293.7]
+];
+const SINO_ESCALA = [440, 523.3, 587.3, 659.3, 784, 880];
+
+function iniciarAudio() {
+  try {
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return;
+    }
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioCtx = new AudioContextClass();
+    
+    mestreMusica = audioCtx.createGain();
+    const f = audioCtx.createBiquadFilter(), d = audioCtx.createDelay(), fb = audioCtx.createGain(), w = audioCtx.createGain();
+    f.type = 'lowpass'; f.frequency.value = 1600;
+    d.delayTime.value = 0.48; fb.gain.value = 0.35; w.gain.value = 0.3;
+    f.connect(mestreMusica); f.connect(d); d.connect(fb); fb.connect(d); d.connect(w); w.connect(mestreMusica);
+    mestreMusica.connect(audioCtx.destination);
+    
+    mestreSfx = audioCtx.createGain();
+    mestreSfx.connect(audioCtx.destination);
+    
+    atualizarVolumes();
+    tocarLoopMusica();
+  } catch(e) {}
+}
+
+function atualizarVolumes() {
+  if (!audioCtx) return;
+  try {
+    const now = audioCtx.currentTime;
+    if (mestreMusica) mestreMusica.gain.setTargetAtTime(bgmMudo ? 0 : volBgm / 100 * 0.4, now, 0.08);
+    if (mestreSfx) mestreSfx.gain.setTargetAtTime(sfxMudo ? 0 : volSfx / 100 * 0.6, now, 0.08);
+  } catch(e) {}
+}
+
+function tocarLoopMusica() {
+  if (musicaIniciada) return;
+  musicaIniciada = true;
+  
+  const nota = (hz, t, dur, v, tipo = 'sine') => {
+    if (!audioCtx || audioCtx.state !== 'running') return;
+    try {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = tipo; o.frequency.value = hz;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(v, t + dur * 0.3);
+      g.gain.linearRampToValueAtTime(0, t + dur);
+      o.connect(g); g.connect(mestreMusica);
+      o.start(t); o.stop(t + dur);
+    } catch(e) {}
+  };
+  
+  (function tique() {
+    if (audioCtx && audioCtx.state === 'running' && !bgmMudo && volBgm > 0) {
+      const t = audioCtx.currentTime + 0.05;
+      if (passoMusica % 16 === 0) {
+        ACORDES_BGM[Math.floor(passoMusica / 16) % 4].forEach(hz => nota(hz, t, 10, 0.09, 'sine'));
+      }
+      if (Math.random() < 0.5) {
+        nota(SINO_ESCALA[Math.floor(Math.random() * SINO_ESCALA.length)], t, 2.2, 0.06, 'triangle');
+      }
+      passoMusica++;
+    }
+    setTimeout(tique, 600);
   })();
 }
 
-// ===================== CONFIGURAÇÕES (música) =====================
-function menu(abrir){$('#menu').hidden=!abrir;$('#cfg').setAttribute('aria-expanded',!!abrir)}
-function som(){                                     // atualiza a interface, salva e aplica o volume
-  $('#mudo').textContent=mudo?'🔇 Música desligada':'🔊 Música ligada';
-  $('#vv').textContent=vol;$('#vol').value=vol;
-  ls('qf.vol',vol);ls('qf.mudo',+mudo);volume();
+function sfxReacao(nova) {
+  if (!audioCtx || audioCtx.state !== 'running' || sfxMudo || volSfx <= 0) return;
+  try {
+    const t = audioCtx.currentTime;
+    if (nova) {
+      [523.25, 659.25, 783.99, 1046.5].forEach((hz, i) => {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'triangle'; o.frequency.value = hz;
+        const st = t + i * 0.09;
+        g.gain.setValueAtTime(0, st);
+        g.gain.linearRampToValueAtTime(0.2, st + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, st + 0.7);
+        o.connect(g); g.connect(mestreSfx);
+        o.start(st); o.stop(st + 0.7);
+      });
+    } else {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(320, t);
+      o.frequency.exponentialRampToValueAtTime(540, t + 0.15);
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o.connect(g); g.connect(mestreSfx);
+      o.start(t); o.stop(t + 0.25);
+    }
+  } catch(e) {}
 }
-$('#cfg').onclick=()=>menu($('#menu').hidden);
-$('#mudo').onclick=()=>{mudo=!mudo;som()};
-$('#vol').oninput=e=>{vol=+e.target.value;if(vol)mudo=false;som()};
-addEventListener('pointerdown',e=>{if(!e.target.closest('#menu,#cfg'))menu(false)});
-['pointerup','touchend','click','keydown'].forEach(t=>addEventListener(t,e=>{musica();if(e.key=='Escape')menu(false)}));
-som();
 
-// ===================== ZERAR DESCOBERTAS (confirmação tripla) =====================
-const TX=['Zerar todas as descobertas? Você perderá todas as substâncias encontradas.','Tem certeza? Esta ação não pode ser desfeita.','Última confirmação: digite ZERAR para apagar tudo.'];
-let et=0;
-function etapa(n){
-  et=n;$('#zt').textContent=`(${n}/3) `+TX[n-1];$('#zi').hidden=n<3;$('#zi').value='';
-  $('#zok').textContent=n<3?'Continuar':'Apagar tudo';$('#zok').disabled=n==3;if(n==3)$('#zi').focus();
+function sfxPop() {
+  if (!audioCtx || audioCtx.state !== 'running' || sfxMudo || volSfx <= 0) return;
+  try {
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(480, t);
+    o.frequency.exponentialRampToValueAtTime(240, t + 0.08);
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    o.connect(g); g.connect(mestreSfx);
+    o.start(t); o.stop(t + 0.08);
+  } catch(e) {}
 }
-$('#zerar').onclick=()=>{etapa(1);$('#zera').showModal()};
-$('#zno').onclick=()=>$('#zera').close();
-$('#zi').oninput=e=>{$('#zok').disabled=e.target.value.trim().toUpperCase()!='ZERAR'};
-$('#zi').onkeydown=e=>{if(e.key=='Enter'&&!$('#zok').disabled)$('#zok').click()};
-$('#zok').onclick=()=>{
-  if(et<3)return etapa(et+1);
-  found=[];ls('qf.found','[]');
-  $$('.item').forEach(x=>{if(!DB[x.dataset.id].el)x.remove()});   // tira da mesa as substâncias
-  $('#zera').close();painel();dica();aviso('Descobertas zeradas');
+
+function sfxErro() {
+  if (!audioCtx || audioCtx.state !== 'running' || sfxMudo || volSfx <= 0) return;
+  try {
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(140, t);
+    o.frequency.linearRampToValueAtTime(100, t + 0.18);
+    g.gain.setValueAtTime(0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    o.connect(g); g.connect(mestreSfx);
+    o.start(t); o.stop(t + 0.18);
+  } catch(e) {}
+}
+
+['pointerdown', 'keydown', 'click'].forEach(evt => {
+  window.addEventListener(evt, () => iniciarAudio(), { once: true });
+});
+
+// =========================================================================
+// NORMALIZAÇÃO DE BUSCA & FILTROS
+// =========================================================================
+const norm = t => t.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+let filtroAtivo = 'todos';
+
+function atualizarPainel(itemNovoId) {
+  const q = norm($('#q').value.trim());
+  $('#limpar-busca').style.display = q ? 'block' : 'none';
+  
+  const matchesBusca = d => {
+    if (!q) return true;
+    if (norm(d.n).includes(q)) return true;
+    if (d.el) {
+      if (norm(d.s).toLowerCase() === q || norm(d.s).toLowerCase().startsWith(q)) return true;
+      if (String(d.num) === q) return true;
+    } else {
+      if (norm(d.sub).includes(q)) return true;
+    }
+    return false;
+  };
+  
+  const matchesFiltro = d => {
+    if (filtroAtivo === 'todos') return true;
+    if (filtroAtivo === 'elementos') return !!d.el;
+    if (filtroAtivo === 'descobertas') return !d.el && formulaConcluida(d.id);
+    if (filtroAtivo === 'acidos') return d.cat === 'acidos';
+    if (filtroAtivo === 'sais') return d.cat === 'sais';
+    if (filtroAtivo === 'ligas') return d.cat === 'ligas';
+    if (filtroAtivo === 'organicos') return d.cat === 'organicos';
+    return true;
+  };
+  
+  const linhaHtml = d => {
+    const isNovo = d.id === itemNovoId ? ' new' : '';
+    const tipoBadge = d.el ? `Nº ${d.num}` : (d.cat ? d.cat.toUpperCase() : 'COMPOSTO');
+    return `<button class="row${isNovo}" data-id="${d.id}" role="listitem">
+      <span class="s">${d.s}</span>
+      <span class="det">
+        <b>${d.n}</b>
+        <small>${d.sub}</small>
+      </span>
+      <span class="tag-tipo">${tipoBadge}</span>
+    </button>`;
+  };
+  
+  const elementosFiltrados = ELS.map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
+  const descobertasFiltradas = idsConcluidos().map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
+  
+  let html = '';
+  if (elementosFiltrados.length) {
+    html += '<div class="sep">Elementos Básicos</div>' + elementosFiltrados.map(linhaHtml).join('');
+  }
+  if (descobertasFiltradas.length) {
+    const tituloDescobertas = modoEstudo ? 'Fórmulas liberadas (temporário)' : 'Substâncias Descobertas';
+    html += `<div class="sep">${tituloDescobertas}</div>` + descobertasFiltradas.map(linhaHtml).join('');
+  }
+  if (!html) {
+    html = '<div class="sep" style="text-align:center; padding:24px 8px">Nenhum elemento encontrado.</div>';
+  }
+  
+  $('#lista').innerHTML = html;
+  
+  const total = SUBS.length;
+  const descobertos = modoEstudo ? total : found.length;
+  const perc = total ? Math.round((descobertos / total) * 100) : 0;
+  $('#prog-label').textContent = modoEstudo ? 'Modo estudo' : 'Descobertas';
+  $('#prog-txt').textContent = `${descobertos} / ${total} (${perc}%)`;
+  $('#prog-fill').style.width = `${perc}%`;
+  
+  let rank = 'Iniciante';
+  if (perc >= 100) rank = 'Prêmio Nobel 🏆';
+  else if (perc >= 75) rank = 'Alquimista Supremo 🧙';
+  else if (perc >= 50) rank = 'Mestre Químico 🔬';
+  else if (perc >= 25) rank = 'Pesquisador 🧪';
+  else if (perc >= 10) rank = 'Estudante 📚';
+  if (modoEstudo) rank = 'Modo Estudo 🎓';
+  $('#rank-txt').textContent = rank;
+  
+  if (itemNovoId) {
+    $('.new')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+$$('#filtros .chip').forEach(btn => {
+  btn.onclick = () => {
+    $$('#filtros .chip').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    filtroAtivo = btn.dataset.f;
+    atualizarPainel();
+  };
+});
+
+$('#q').oninput = () => atualizarPainel();
+$('#limpar-busca').onclick = () => {
+  $('#q').value = '';
+  atualizarPainel();
+  $('#q').focus();
 };
 
-// ===================== ÁREA DO ADMINISTRADOR (descobertas + crafting) =====================
-// Só o hash SHA-256 da senha fica no código (a senha em si não aparece). Como o jogo roda no navegador,
-// isto é uma trava simples: não é segurança real contra quem edita o código.
-const HASH='12ed51c39078b3110952131a0ddbc9d3c987ff7ae3b0a549451c0b69b83c7534';
-let adm=true,alvo='d';                             // adm: liberado até recarregar a página; alvo: aba aberta
-const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(x=>x.toString(16).padStart(2,'0')).join('');
-const rot=i=>`${DB[i].s} ${DB[i].n}`;
-function aba(t){                                    // alterna entre "Descobertas" e "Crafting"
-  alvo=t;$$('#abas button').forEach(b=>b.classList.toggle('on',b.dataset.t==t));
-  $('#adg').hidden=t!='d';$('#acr').hidden=t!='c';
-  $('#adt').textContent=t=='d'?`Desbloqueadas: ${found.length} / ${SUBS.length}`:`${Object.keys(REC).length} receitas no jogo (verde = resultado já descoberto)`;
-}
-function verAdm(){                                  // tela de senha ou conteúdo (verde = desbloqueado, cinza = bloqueado)
-  $('#adp').hidden=adm;$('#adv').hidden=!adm;
-  if(!adm){$('#ads').value='';$('#ade').textContent='';return}
-  $('#adg').innerHTML=SUBS.map(i=>{const d=DB[i],ok=found.includes(i);
-    return `<div class="dc ${ok?'ok':'bl'}"><span class="s">${ok?d.s:'🔒'}</span><b>${d.n}</b><small>${d.sub}</small></div>`}).join('');
-  $('#acr').innerHTML=Object.keys(REC).map(k=>{const id=REC[k],[a,b]=ORD[k];
-    return `<div class="cr ${found.includes(id)?'ok':'bl'}">${rot(a)} + ${rot(b)} → <b>${rot(id)}</b><small>${equacao(a,b,id)}</small></div>`}).join('');
-  aba(alvo);
-}
-function abre(t){alvo=t;verAdm();$('#adm').showModal();if(!adm)$('#ads').focus()}
-async function entrar(){
-  try{adm=(await sha($('#ads').value))==HASH}catch(e){$('#ade').textContent='Verificação indisponível neste navegador.';return}
-  if(adm)verAdm();else{$('#ade').textContent='Senha incorreta.';$('#ads').select()}
-}
-$('#desc').onclick=()=>abre('d');
-$('#craf').onclick=()=>abre('c');
-$$('#abas button').forEach(b=>b.onclick=()=>aba(b.dataset.t));
-$('#adx').onclick=$('#adf').onclick=()=>$('#adm').close();
-$('#adok').onclick=entrar;
-$('#ads').onkeydown=e=>{if(e.key=='Enter')entrar()};
+// =========================================================================
+// INTERAÇÃO NA MESA (MOTOR ROBUSTO DE ARRASTO E FUSÃO)
+// =========================================================================
+const mesa = $('#mesa');
+let zIndexAtual = 200;
+let avisoTimeout = null, eqTimeout = null;
+let ultimoCliqueTempo = 0, ultimoItemClicado = null;
 
-// ===================== TEMA, EVENTOS E INÍCIO =====================
-function tema(t){root.dataset.theme=t;ls('qf.tema',t);$('#tema').textContent=t=='dark'?'☀️ Claro':'🌙 Escuro';if(still&&mols.length)quadro()}
-$('#lista').onpointerdown=e=>{                      // arrastar do painel (mouse/caneta)
-  tocou=e.pointerType=='touch';const r=e.target.closest('.row');
-  if(r&&!tocou&&!e.button){e.preventDefault();arrastar(criar(r.dataset.id,e.clientX,e.clientY),e,1)}
+function atualizarDicaCentral() {
+  $('#dica-centro').style.opacity = $('.item') ? '0' : '1';
+}
+
+function mostrarAviso(msg) {
+  const el = $('#aviso');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(avisoTimeout);
+  avisoTimeout = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
+function mostrarEquacao(eq, nova, d) {
+  const el = $('#eqn');
+  el.className = nova ? 'on nv' : 'on';
+  el.innerHTML = `
+    <div class="topo-eqn">
+      ${nova ? '✨ <b>Nova Descoberta!</b>' : 'Reação Química'}
+      <span>— ${d.s} ${d.n}</span>
+    </div>
+    <span class="formula-texto">${eq}</span>
+  `;
+  clearTimeout(eqTimeout);
+  eqTimeout = setTimeout(() => el.className = '', 6500);
+}
+
+// Criação de Item na Mesa
+function criarItem(id, x, y, anim = '') {
+  const d = DB[id];
+  if (!d) return null;
+  const el = document.createElement('div');
+  el.className = 'item ' + anim;
+  el.dataset.id = id;
+  el.classList.add(d.el ? 'elemento' : 'composto');
+  el.title = d.el ? `Nº ${d.num} · ${d.s} · ${d.n}` : `${d.n} · ${d.sub}`;
+  el.setAttribute('aria-label', el.title);
+  el.innerHTML = `
+    <button class="del-btn" title="Remover item">✕</button>
+    ${d.el ? `<small class="num">${d.num}</small><span class="s">${d.s}</span>` : `<span class="s">${d.s}</span><b>${d.n}</b><small>${d.sub}</small>`}
+  `;
+  document.body.append(el);
+  
+  el.style.left = (x - el.offsetWidth / 2) + 'px';
+  el.style.top = (y - el.offsetHeight / 2) + 'px';
+  el.style.zIndex = ++zIndexAtual;
+  
+  // Botão de deletar individual
+  const delBtn = el.querySelector('.del-btn');
+  delBtn.onpointerdown = e => e.stopPropagation();
+  delBtn.onclick = e => {
+    e.stopPropagation();
+    el.remove();
+    atualizarDicaCentral();
+    sfxPop();
+  };
+  
+  // Clique direito remove
+  el.oncontextmenu = e => {
+    e.preventDefault();
+    el.remove();
+    atualizarDicaCentral();
+    sfxPop();
+  };
+  
+  // Arrasto e detecção de duplo-clique
+  el.onpointerdown = e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    
+    // Detecção segura de duplo clique/toque
+    const agora = Date.now();
+    if (ultimoItemClicado === el && (agora - ultimoCliqueTempo) < 320) {
+      ultimoCliqueTempo = 0;
+      ultimoItemClicado = null;
+      duplicarItem(el);
+      return;
+    }
+    ultimoCliqueTempo = agora;
+    ultimoItemClicado = el;
+    
+    iniciarArrasto(el, e);
+  };
+  
+  atualizarDicaCentral();
+  return el;
+}
+
+function duplicarItem(el) {
+  const id = el.dataset.id;
+  const rect = el.getBoundingClientRect();
+  const novo = criarItem(id, rect.left + rect.width / 2 + 35, rect.top + rect.height / 2 + 35, 'pop');
+  sfxPop();
+  mostrarAviso(`Duplicado: ${DB[id].n}`);
+}
+
+function adicionarItemNaMesa(id) {
+  const m = mesa.getBoundingClientRect();
+  // Posiciona suavemente próximo ao centro da bancada com leve dispersão
+  const cx = m.left + m.width / 2 + (Math.random() - 0.5) * Math.min(220, m.width * 0.4);
+  const cy = m.top + m.height / 2 + (Math.random() - 0.5) * Math.min(180, m.height * 0.4);
+  criarItem(id, cx, cy, 'pop');
+  sfxPop();
+  atualizarDicaCentral();
+}
+
+// Detecção de colisão inteligente
+function encontrarAlvoSobreposto(el) {
+  const ra = el.getBoundingClientRect();
+  const cxA = ra.left + ra.width / 2, cyA = ra.top + ra.height / 2;
+  let melhor = null, menorDist = 999;
+  
+  $$('.item').forEach(outro => {
+    if (outro === el) return;
+    const rb = outro.getBoundingClientRect();
+    const cxB = rb.left + rb.width / 2, cyB = rb.top + rb.height / 2;
+    const dist = Math.hypot(cxA - cxB, cyA - cyB);
+    
+    // Verifica raio de proximidade ou sobreposição geométrica
+    const intersecta = !(ra.right < rb.left + 15 || ra.left > rb.right - 15 || ra.bottom < rb.top + 15 || ra.top > rb.bottom - 15);
+    
+    if ((dist < 95 || intersecta) && dist < menorDist) {
+      menorDist = dist;
+      melhor = outro;
+    }
+  });
+  return melhor;
+}
+
+// Mecanismo de Arrasto Imbatível usando Window Listeners
+function iniciarArrasto(el, e, customOffset) {
+  const r = el.getBoundingClientRect();
+  const offsetX = customOffset ? customOffset.offsetX : (e.clientX - r.left);
+  const offsetY = customOffset ? customOffset.offsetY : (e.clientY - r.top);
+  
+  el.style.zIndex = 99999;
+  el.classList.add('arr');
+  
+  function onMove(ev) {
+    el.style.left = (ev.clientX - offsetX) + 'px';
+    el.style.top = (ev.clientY - offsetY) + 'px';
+    
+    $$('.hot').forEach(x => x.classList.remove('hot'));
+    const alvo = encontrarAlvoSobreposto(el);
+    if (alvo) alvo.classList.add('hot');
+  }
+  
+  function onUp() {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    
+    el.classList.remove('arr');
+    el.style.zIndex = ++zIndexAtual;
+    $$('.hot').forEach(x => x.classList.remove('hot'));
+    
+    const m = mesa.getBoundingClientRect();
+    const cr = el.getBoundingClientRect();
+    const cx = cr.left + cr.width / 2;
+    const cy = cr.top + cr.height / 2;
+    
+    // Fora da bancada: remove
+    if (cx < m.left || cx > m.right || cy < m.top || cy > m.bottom) {
+      el.remove();
+      atualizarDicaCentral();
+      sfxPop();
+      return;
+    }
+    
+    // Verifica fusão
+    const alvo = encontrarAlvoSobreposto(el);
+    if (alvo) {
+      executarFusao(el, alvo);
+    } else {
+      atualizarDicaCentral();
+    }
+  }
+  
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+}
+
+// Execução da Reação Química
+function executarFusao(a, b) {
+  const idA = a.dataset.id;
+  const idB = b.dataset.id;
+  const k = chave(idA, idB);
+  const idProduto = REC[k];
+  
+  if (!idProduto) {
+    sfxErro();
+    mostrarAviso(`Sem reação entre ${DB[idA].n} e ${DB[idB].n}`);
+    a.classList.add('sh');
+    setTimeout(() => a.classList.remove('sh'), 350);
+    return;
+  }
+  
+  const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  const x = (ra.left + ra.width / 2 + rb.left + rb.width / 2) / 2;
+  const y = (ra.top + ra.height / 2 + rb.top + rb.height / 2) / 2;
+  
+  const d = DB[idProduto];
+  const nova = !formulaConcluida(idProduto);
+  const eq = equacao(idA, idB, idProduto);
+  
+  // Coordenadas relativas ao canvas
+  const m = mesa.getBoundingClientRect();
+  gerarParticulas(x - m.left, y - m.top, nova);
+  
+  sfxReacao(nova);
+  
+  historico.unshift({
+    hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    reagentes: `${DB[idA].s} ${DB[idA].n} + ${DB[idB].s} ${DB[idB].n}`,
+    produto: `${d.s} ${d.n}`,
+    equacao: eq,
+    nova
+  });
+  if (historico.length > 50) historico.pop();
+  
+  a.remove();
+  b.remove();
+  
+  criarItem(idProduto, x, y, nova ? 'pop nova' : 'pop');
+  mostrarEquacao(eq, nova, d);
+  
+  if (nova) {
+    found.push(idProduto);
+    ls('qf.found', JSON.stringify(found));
+    atualizarPainel(idProduto);
+    mostrarAviso(`✨ Nova Descoberta: ${d.n}!`);
+  }
+}
+
+// Adicionar a partir do painel lateral (Clique OU Arraste fluído)
+let startX = 0, startY = 0, itemPendenteId = null, arrastandoDoPainel = false;
+
+$('#lista').addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  const row = e.target.closest('.row');
+  if (!row) return;
+  
+  itemPendenteId = row.dataset.id;
+  startX = e.clientX;
+  startY = e.clientY;
+  arrastandoDoPainel = false;
+  
+  function onPainelMove(ev) {
+    if (!itemPendenteId) return;
+    const dist = Math.hypot(ev.clientX - startX, ev.clientY - startY);
+    if (dist > 7 && !arrastandoDoPainel) {
+      arrastandoDoPainel = true;
+      const novoItem = criarItem(itemPendenteId, ev.clientX, ev.clientY, 'arr');
+      iniciarArrasto(novoItem, ev, { offsetX: novoItem.offsetWidth / 2, offsetY: novoItem.offsetHeight / 2 });
+      limparEventosPainel();
+    }
+  }
+  
+  function onPainelUp() {
+    if (itemPendenteId && !arrastandoDoPainel) {
+      // Foi um clique simples no painel: adiciona diretamente na mesa!
+      adicionarItemNaMesa(itemPendenteId);
+    }
+    limparEventosPainel();
+  }
+  
+  function limparEventosPainel() {
+    itemPendenteId = null;
+    arrastandoDoPainel = false;
+    window.removeEventListener('pointermove', onPainelMove);
+    window.removeEventListener('pointerup', onPainelUp);
+    window.removeEventListener('pointercancel', limparEventosPainel);
+  }
+  
+  window.addEventListener('pointermove', onPainelMove);
+  window.addEventListener('pointerup', onPainelUp);
+  window.addEventListener('pointercancel', limparEventosPainel);
+});
+
+// Botão Organizar Mesa
+$('#organizar').onclick = () => {
+  const itens = Array.from($$('.item'));
+  if (!itens.length) return;
+  const m = mesa.getBoundingClientRect();
+  const espacoX = 120, espacoY = 95;
+  const colunas = Math.max(1, Math.floor((m.width - 80) / espacoX));
+  
+  itens.forEach((el, idx) => {
+    const col = idx % colunas;
+    const lin = Math.floor(idx / colunas);
+    el.style.left = (m.left + 40 + col * espacoX) + 'px';
+    el.style.top = (m.top + 75 + lin * espacoY) + 'px';
+  });
+  sfxPop();
+  mostrarAviso('Mesa organizada em grade.');
 };
-$('#lista').onclick=e=>{const r=e.target.closest('.row');if(r&&(tocou||!e.detail))adicionar(r.dataset.id)};  // toque ou teclado
-$('#q').oninput=()=>painel();
-$('#limpar').onclick=()=>{$$('.item').forEach(x=>x.remove());dica()};
-$('#tema').onclick=()=>tema(root.dataset.theme=='dark'?'light':'dark');
-new ResizeObserver(ajusta).observe(mesa);
-tema(ls('qf.tema')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
-painel();dica();ajusta();mols=Array.from({length:16},nova);quadro();
+
+// Botão Dica
+$('#dica-btn').onclick = () => {
+  const conhecidos = [...ELS, ...idsConcluidos()];
+  const candidatos = [];
+  
+  for (const k of Object.keys(REC)) {
+    const idProd = REC[k];
+    if (formulaConcluida(idProd)) continue;
+    const [a, b] = ORD[k];
+    if (conhecidos.includes(a) && conhecidos.includes(b)) {
+      candidatos.push({ a, b, idProd });
+    }
+  }
+  
+  if (candidatos.length > 0) {
+    const escolha = candidatos[Math.floor(Math.random() * candidatos.length)];
+    mostrarAviso(`💡 Dica: Experimente juntar [${DB[escolha.a].n}] com [${DB[escolha.b].n}]!`);
+    sfxPop();
+  } else {
+    mostrarAviso('🎉 Você descobriu todas as reações possíveis com os elementos atuais!');
+  }
+};
+
+// Limpar mesa
+$('#limpar').onclick = () => {
+  $$('.item').forEach(x => x.remove());
+  atualizarDicaCentral();
+  mostrarAviso('Bancada limpa.');
+  sfxPop();
+};
+
+// =========================================================================
+// CANVAS DE FUNDO & PARTÍCULAS QUÍMICAS
+// =========================================================================
+const cv = $('#fundo');
+const cx = cv.getContext('2d');
+let W = 0, H = 0, mols = [], particulas = [];
+const root = document.documentElement;
+const reducaoMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function ajustarTamanhoCanvas() {
+  const r = window.devicePixelRatio || 1;
+  W = cv.clientWidth || window.innerWidth;
+  H = cv.clientHeight || window.innerHeight;
+  cv.width = W * r;
+  cv.height = H * r;
+  cx.setTransform(r, 0, 0, r, 0, 0);
+  if (reducaoMovimento) renderizarQuadro();
+}
+
+function criarMolecula() {
+  const n = 2 + (Math.random() * 3 | 0);
+  const at = [{ x: 0, y: 0, r: 5 + Math.random() * 5 }];
+  for (let i = 1; i < n; i++) {
+    const p = at[Math.random() * i | 0];
+    const a = Math.random() * Math.PI * 2;
+    const d = 22 + Math.random() * 16;
+    at.push({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d, r: 4 + Math.random() * 5, p });
+  }
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    a: Math.random() * Math.PI * 2,
+    va: (Math.random() - 0.5) * 0.003,
+    at
+  };
+}
+
+function gerarParticulas(x, y, nova) {
+  const cor = nova ? (root.dataset.theme === 'dark' ? '#32d6b3' : '#078e76') : '#d97706';
+  const qtd = nova ? 30 : 16;
+  for (let i = 0; i < qtd; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 1.8 + Math.random() * 4.5;
+    particulas.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      r: 2.5 + Math.random() * 3.5,
+      vida: 1,
+      decaimento: 0.02 + Math.random() * 0.025,
+      cor
+    });
+  }
+}
+
+function renderizarQuadro() {
+  cx.clearRect(0, 0, W, H);
+  
+  const corMol = root.dataset.theme === 'dark' ? 'rgba(160, 220, 205, 0.12)' : 'rgba(110, 140, 130, 0.18)';
+  cx.fillStyle = cx.strokeStyle = corMol;
+  cx.lineWidth = 2.5;
+  
+  for (const m of mols) {
+    m.x += m.vx; m.y += m.vy; m.a += m.va;
+    if (m.x < -80) m.x = W + 80; if (m.x > W + 80) m.x = -80;
+    if (m.y < -80) m.y = H + 80; if (m.y > H + 80) m.y = -80;
+    
+    const c = Math.cos(m.a), s = Math.sin(m.a);
+    const P = q => [m.x + q.x * c - q.y * s, m.y + q.x * s + q.y * c];
+    
+    for (const q of m.at) {
+      const [x, y] = P(q);
+      if (q.p) {
+        const [px, py] = P(q.p);
+        cx.beginPath(); cx.moveTo(px, py); cx.lineTo(x, y); cx.stroke();
+      }
+      cx.beginPath(); cx.arc(x, y, q.r, 0, Math.PI * 2); cx.fill();
+    }
+  }
+  
+  for (let i = particulas.length - 1; i >= 0; i--) {
+    const p = particulas[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vida -= p.decaimento;
+    if (p.vida <= 0) {
+      particulas.splice(i, 1);
+      continue;
+    }
+    cx.globalAlpha = p.vida;
+    cx.fillStyle = p.cor;
+    cx.beginPath(); cx.arc(p.x, p.y, p.r * p.vida, 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = 1;
+  }
+  
+  if (!reducaoMovimento) requestAnimationFrame(renderizarQuadro);
+}
+
+// =========================================================================
+// ENCICLOPÉDIA & LIVRO DE RECEITAS (MODAL)
+// =========================================================================
+function atualizarModalReceitas() {
+  const concluidas = modoEstudo ? SUBS.length : found.length;
+  $('#cont-dc').textContent = `${concluidas}/${SUBS.length}`;
+  $('#cont-cr').textContent = `${Object.keys(REC).length}`;
+  
+  const qModal = norm($('#q-modal').value.trim());
+  
+  $('#grid-dc').innerHTML = SUBS.map(id => {
+    const d = DB[id];
+    const ok = formulaConcluida(id);
+    if (qModal && !norm(d.n).includes(qModal) && !norm(d.sub).includes(qModal)) return '';
+    return `
+      <div class="card-dc ${ok ? 'ok' : 'bl'}">
+        <div class="s">${ok ? d.s : '🔒'}</div>
+        <b>${ok ? d.n : '???'}</b>
+        <small>${ok ? d.sub : 'Bloqueado'}</small>
+      </div>
+    `;
+  }).join('');
+  
+  $('#lista-cr').innerHTML = Object.keys(REC).map(k => {
+    const id = REC[k];
+    const [a, b] = ORD[k];
+    const ok = formulaConcluida(id);
+    const nomeEq = equacao(a, b, id);
+    if (qModal && !norm(DB[id].n).includes(qModal) && !norm(DB[a].n).includes(qModal) && !norm(DB[b].n).includes(qModal) && !norm(nomeEq).includes(qModal)) return '';
+    
+    return `
+      <div class="card-cr ${ok ? 'ok' : 'bl'}">
+        <div>
+          <span>${DB[a].s} ${DB[a].n}</span> + <span>${DB[b].s} ${DB[b].n}</span> → <b>${ok ? DB[id].s + ' ' + DB[id].n : '🔒 Desconhecido'}</b>
+        </div>
+        <small>${ok ? nomeEq : 'Descubra combinando os ingredientes na bancada'}</small>
+      </div>
+    `;
+  }).join('');
+}
+
+$('#livro-btn').onclick = () => {
+  $('#modal-receitas').showModal();
+  atualizarModalReceitas();
+};
+$('#fechar-receitas-btn').onclick = () => $('#modal-receitas').close();
+
+$('#aba-dc-btn').onclick = () => {
+  $('#aba-dc-btn').classList.add('on');
+  $('#aba-cr-btn').classList.remove('on');
+  $('#conteudo-modal-dc').hidden = false;
+  $('#conteudo-modal-cr').hidden = true;
+};
+$('#aba-cr-btn').onclick = () => {
+  $('#aba-cr-btn').classList.add('on');
+  $('#aba-dc-btn').classList.remove('on');
+  $('#conteudo-modal-dc').hidden = true;
+  $('#conteudo-modal-cr').hidden = false;
+};
+$('#q-modal').oninput = () => atualizarModalReceitas();
+
+$('#modo-professor-btn').onclick = () => {
+  modoEstudo = !modoEstudo;
+  $('#modo-professor-btn').textContent = modoEstudo ? '✅ Concluídas · Desativar' : '🎓 Modo Estudo';
+  $('#modo-professor-btn').classList.toggle('destaque', modoEstudo);
+  atualizarPainel();
+  atualizarModalReceitas();
+};
+
+// =========================================================================
+// CONFIGURAÇÕES & ÁUDIO
+// =========================================================================
+$('#cfg-btn').onclick = () => {
+  $('#modal-cfg').showModal();
+  atualizarUIAudio();
+};
+$('#fechar-cfg-btn').onclick = () => $('#modal-cfg').close();
+
+function atualizarUIAudio() {
+  $('#som-musica-btn').textContent = bgmMudo ? '🔇 Desligada' : '🔊 Ligada';
+  $('#som-musica-btn').classList.toggle('perigo', bgmMudo);
+  $('#val-musica').textContent = volBgm;
+  $('#vol-musica').value = volBgm;
+  
+  $('#som-sfx-btn').textContent = sfxMudo ? '🔇 Desligados' : '🔊 Ligados';
+  $('#som-sfx-btn').classList.toggle('perigo', sfxMudo);
+  $('#val-sfx').textContent = volSfx;
+  $('#vol-sfx').value = volSfx;
+  
+  ls('qf.volBgm', volBgm);
+  ls('qf.volSfx', volSfx);
+  ls('qf.bgmMudo', bgmMudo ? '1' : '0');
+  ls('qf.sfxMudo', sfxMudo ? '1' : '0');
+  atualizarVolumes();
+}
+
+$('#som-musica-btn').onclick = () => { bgmMudo = !bgmMudo; atualizarUIAudio(); };
+$('#vol-musica').oninput = e => { volBgm = +e.target.value; if (volBgm) bgmMudo = false; atualizarUIAudio(); };
+$('#som-sfx-btn').onclick = () => { sfxMudo = !sfxMudo; atualizarUIAudio(); };
+$('#vol-sfx').oninput = e => { volSfx = +e.target.value; if (volSfx) sfxMudo = false; atualizarUIAudio(); };
+
+// =========================================================================
+// HISTÓRICO DE REAÇÕES
+// =========================================================================
+$('#hist-btn').onclick = () => {
+  const container = $('#lista-hist');
+  if (!historico.length) {
+    container.innerHTML = '<p style="text-align:center; color:var(--mute); padding:20px">Nenhuma reação realizada nesta sessão.</p>';
+  } else {
+    container.innerHTML = historico.map(h => `
+      <div class="card-cr ${h.nova ? 'ok' : ''}" style="font-size:13px">
+        <div style="display:flex; justify-content:space-between">
+          <b>${h.produto}</b>
+          <small>${h.hora} ${h.nova ? '✨ Nova' : ''}</small>
+        </div>
+        <div>${h.equacao}</div>
+      </div>
+    `).join('');
+  }
+  $('#modal-hist').showModal();
+};
+$('#limpar-hist-btn').onclick = () => {
+  historico = [];
+  $('#modal-hist').close();
+  mostrarAviso('Histórico limpo.');
+};
+$('#fechar-hist-btn').onclick = () => $('#modal-hist').close();
+
+// =========================================================================
+// REINICIAR / ZERAR DESCOBERTAS
+// =========================================================================
+$('#zerar-btn').onclick = () => $('#modal-reset').showModal();
+$('#cancelar-reset-btn').onclick = () => $('#modal-reset').close();
+$('#confirmar-reset-btn').onclick = () => {
+  found = [];
+  ls('qf.found', '[]');
+  $$('.item').forEach(el => {
+    if (!DB[el.dataset.id].el) el.remove();
+  });
+  $('#modal-reset').close();
+  atualizarPainel();
+  atualizarDicaCentral();
+  mostrarAviso('Laboratório reiniciado.');
+};
+
+// =========================================================================
+// TEMA VISUAL (CLARO / ESCURO)
+// =========================================================================
+function aplicarTema(t) {
+  root.dataset.theme = t;
+  ls('qf.tema', t);
+  const isDark = t === 'dark';
+  $('#cfg-tema-btn').textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+  if (reducaoMovimento && mols.length) renderizarQuadro();
+}
+
+function alternarTema() {
+  aplicarTema(root.dataset.theme === 'dark' ? 'light' : 'dark');
+}
+
+$('#cfg-tema-btn').onclick = alternarTema;
+
+// Inicialização Geral
+new ResizeObserver(ajustarTamanhoCanvas).observe(mesa);
+const temaSalvo = ls('qf.tema') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+aplicarTema(temaSalvo);
+atualizarPainel();
+atualizarDicaCentral();
+ajustarTamanhoCanvas();
+
+mols = Array.from({ length: 18 }, criarMolecula);
+renderizarQuadro();
 </script>
 </body>
 </html>
