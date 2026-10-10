@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-10T21:43:58.634Z",
+  "exportedAt": "2026-10-10T21:46:13.546Z",
   "elements": [
     {
       "number": 1,
@@ -3041,26 +3041,6 @@
       "formula": "WF₆",
       "icon": "🧪",
       "equation": "W + 3F₂ → WF₆"
-    },
-    {
-      "uid": "recipe-1791668392554-cmn1cv",
-      "a": "Pd",
-      "b": "Og",
-      "productId": "pd2og",
-      "name": "Arroz",
-      "formula": "Pd2Og",
-      "icon": "🧪",
-      "equation": "2Pd + Og → Pd2Og"
-    },
-    {
-      "uid": "recipe-1791668635305-jfrius",
-      "a": "H",
-      "b": "Fr",
-      "productId": "h3fr5",
-      "name": "Chinelo",
-      "formula": "H3Fr5",
-      "icon": "🧪",
-      "equation": ""
     }
   ]
 }
