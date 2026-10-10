@@ -830,364 +830,6 @@ input[type="range"] {
 
 <script>
 (async function iniciarJogoComArquivoDeReceitas() {
-// =========================================================================
-// BANCO DE DADOS QUÍMICO COMPLETO & FÓRMULAS BALANCEADAS
-// =========================================================================
-
-const ELEMENTOS_TXT = `1 H Hidrogênio
-2 He Hélio
-3 Li Lítio
-4 Be Berílio
-5 B Boro
-6 C Carbono
-7 N Nitrogênio
-8 O Oxigênio
-9 F Flúor
-10 Ne Neônio
-11 Na Sódio
-12 Mg Magnésio
-13 Al Alumínio
-14 Si Silício
-15 P Fósforo
-16 S Enxofre
-17 Cl Cloro
-18 Ar Argônio
-19 K Potássio
-20 Ca Cálcio
-21 Sc Escândio
-22 Ti Titânio
-23 V Vanádio
-24 Cr Cromo
-25 Mn Manganês
-26 Fe Ferro
-27 Co Cobalto
-28 Ni Níquel
-29 Cu Cobre
-30 Zn Zinco
-31 Ga Gálio
-32 Ge Germânio
-33 As Arsênio
-34 Se Selênio
-35 Br Bromo
-36 Kr Criptônio
-37 Rb Rubídio
-38 Sr Estrôncio
-39 Y Ítrio
-40 Zr Zircônio
-41 Nb Nióbio
-42 Mo Molibdênio
-43 Tc Tecnécio
-44 Ru Rutênio
-45 Rh Ródio
-46 Pd Paládio
-47 Ag Prata
-48 Cd Cádmio
-49 In Índio
-50 Sn Estanho
-51 Sb Antimônio
-52 Te Telúrio
-53 I Iodo
-54 Xe Xenônio
-55 Cs Césio
-56 Ba Bário
-57 La Lantânio
-58 Ce Cério
-59 Pr Praseodímio
-60 Nd Neodímio
-61 Pm Promécio
-62 Sm Samário
-63 Eu Európio
-64 Gd Gadolínio
-65 Tb Térbio
-66 Dy Disprósio
-67 Ho Hólmio
-68 Er Érbio
-69 Tm Túlio
-70 Yb Itérbio
-71 Lu Lutécio
-72 Hf Háfnio
-73 Ta Tântalo
-74 W Tungstênio
-75 Re Rênio
-76 Os Ósmio
-77 Ir Irídio
-78 Pt Platina
-79 Au Ouro
-80 Hg Mercúrio
-81 Tl Tálio
-82 Pb Chumbo
-83 Bi Bismuto
-84 Po Polônio
-85 At Astato
-86 Rn Radônio
-87 Fr Frâncio
-88 Ra Rádio
-89 Ac Actínio
-90 Th Tório
-91 Pa Protactínio
-92 U Urânio
-93 Np Neptúnio
-94 Pu Plutônio
-95 Am Amerício
-96 Cm Cúrio
-97 Bk Berquélio
-98 Cf Califórnio
-99 Es Einstênio
-100 Fm Férmio
-101 Md Mendelévio
-102 No Nobélio
-103 Lr Laurêncio
-104 Rf Rutherfórdio
-105 Db Dúbnio
-106 Sg Seabórgio
-107 Bh Bóhrio
-108 Hs Hássio
-109 Mt Meitnério
-110 Ds Darmstádtio
-111 Rg Roentgênio
-112 Cn Copernício
-113 Nh Nihônio
-114 Fl Fleróvio
-115 Mc Moscóvio
-116 Lv Livermório
-117 Ts Tenessino
-118 Og Oganessônio`;
-
-const RECEITAS_TXT = `H+H=h2|Gás hidrogênio|H₂|🎈|2H → H₂
-O+O=o2|Gás oxigênio|O₂|🫧|2O → O₂
-N+N=n2|Gás nitrogênio|N₂|💨|2N → N₂
-F+F=f2|Gás flúor|F₂|🟡|2F → F₂
-Cl+Cl=cl2|Gás cloro|Cl₂|🟢|2Cl → Cl₂
-Br+Br=br2|Bromo líquido|Br₂|🟤|2Br → Br₂
-I+I=i2|Iodo sólido|I₂|🟣|2I → I₂
-O+o2=o3|Ozônio|O₃|🌐|O + O₂ → O₃
-h2+o2=agua|Água|H₂O|💧|2H₂ + O₂ → 2H₂O
-h2+O=agua||||2H₂ + O₂ → 2H₂O
-agua+o2=h2o2|Água oxigenada|H₂O₂|🩹|2H₂O + O₂ → 2H₂O₂
-agua+O=h2o2||||H₂O + O → H₂O₂
-h2+n2=nh3|Amônia|NH₃|🧴|3H₂ + N₂ → 2NH₃
-h2+cl2=hcl|Ácido clorídrico|HCl|🧪
-h2+f2=hf|Ácido fluorídrico|HF|🫗
-h2+br2=hbr|Ácido bromídrico|HBr|🟠
-h2+i2=hi|Ácido iodídrico|HI|🔮
-C+h2=ch4|Metano|CH₄|🔥
-h2+S=h2s|Gás sulfídrico|H₂S|🥚
-h2+Li=lih|Hidreto de lítio|LiH|🔋
-h2+Na=nah|Hidreto de sódio|NaH|⚪
-h2+Ca=cah2|Hidreto de cálcio|CaH₂|🏔️
-C+o2=co2|Dióxido de carbono|CO₂|🌫️
-C+co2=co|Monóxido de carbono|CO|☁️
-co+o2=co2
-S+o2=so2|Dióxido de enxofre|SO₂|🌋
-so2+o2=so3|Trióxido de enxofre|SO₃|🟨
-n2+o2=no|Monóxido de nitrogênio|NO|🟠
-no+o2=no2|Dióxido de nitrogênio|NO₂|🟤
-Ca+o2=cao|Cal virgem|CaO|🪨
-Mg+o2=mgo|Óxido de magnésio|MgO|✨
-Fe+o2=ferrugem|Ferrugem (Óxido de ferro III)|Fe₂O₃|🟫
-Al+o2=alumina|Alumina|Al₂O₃|💎
-Si+o2=silica|Sílica|SiO₂|🏖️
-Zn+o2=zno|Óxido de zinco|ZnO|☀️
-Ti+o2=tio2|Dióxido de titânio|TiO₂|🤍
-Cu+o2=cuo|Óxido de cobre(II)|CuO|⚫
-Cr+o2=cr2o3|Óxido de cromo(III)|Cr₂O₃|🌿
-Mn+o2=mno2|Dióxido de manganês|MnO₂|🔋
-P+o2=p2o5|Pentóxido de fósforo|P₄O₁₀|⬜
-Zr+o2=zro2|Zircônia|ZrO₂|💠
-Co+o2=coo|Óxido de cobalto(II)|CoO|🔹
-Ni+o2=nio|Óxido de níquel(II)|NiO|🟩
-Na+o2=na2o|Óxido de sódio|Na₂O|🔆
-K+o2=k2o|Óxido de potássio|K₂O|🌱
-Li+o2=li2o|Óxido de lítio|Li₂O|🪫
-Ba+o2=bao|Óxido de bário|BaO|🎇
-B+o2=b2o3|Óxido de boro|B₂O₃|🔶
-V+o2=v2o5|Pentóxido de vanádio|V₂O₅|🟧
-W+o2=wo3|Trióxido de tungstênio|WO₃|🟡
-Pb+o2=pbo|Óxido de chumbo(II)|PbO|🟥
-Sn+o2=sno2|Dióxido de estanho|SnO₂|🥫
-Hg+o2=hgo|Óxido de mercúrio(II)|HgO|🔴
-Bi+o2=bi2o3|Óxido de bismuto|Bi₂O₃|🌤️
-agua+so3=h2so4|Ácido sulfúrico|H₂SO₄|⚗️
-agua+so2=h2so3|Ácido sulfuroso|H₂SO₃|🌧️
-agua+co2=h2co3|Ácido carbônico|H₂CO₃|🥂
-agua+no2=hno3|Ácido nítrico|HNO₃|🧫|3NO₂ + H₂O → 2HNO₃ + NO
-agua+p2o5=h3po4|Ácido fosfórico|H₃PO₄|🥤
-agua+b2o3=h3bo3|Ácido bórico|H₃BO₃|👁️
-agua+wo3=h2wo4|Ácido túngstico|H₂WO₄|🔦
-Na+agua=naoh|Soda cáustica|NaOH|🧼|2Na + 2H₂O → 2NaOH + H₂
-K+agua=koh|Hidróxido de potássio|KOH|🧽|2K + 2H₂O → 2KOH + H₂
-Li+agua=lioh|Hidróxido de lítio|LiOH|🚀|2Li + 2H₂O → 2LiOH + H₂
-Ba+agua=baoh2|Hidróxido de bário|Ba(OH)₂|🧂|Ba + 2H₂O → Ba(OH)₂ + H₂
-Ca+agua=caoh2||||Ca + 2H₂O → Ca(OH)₂ + H₂
-Mg+agua=mgoh2||||Mg + 2H₂O → Mg(OH)₂ + H₂
-agua+cao=caoh2|Cal hidratada|Ca(OH)₂|🏗️
-agua+mgo=mgoh2|Leite de magnésia|Mg(OH)₂|🥛
-agua+na2o=naoh
-agua+k2o=koh
-agua+bao=baoh2
-agua+nh3=nh4oh|Amônia aquosa|NH₃(aq)|🧹|NH₃ + H₂O ⇌ NH₄⁺ + OH⁻
-Na+cl2=sal|Sal de cozinha|NaCl|🧂
-hcl+naoh=sal||||HCl + NaOH → NaCl + H₂O
-K+cl2=kcl|Cloreto de potássio|KCl|🍌
-Ca+cl2=cacl2|Cloreto de cálcio|CaCl₂|❄️
-Mg+cl2=mgcl2|Cloreto de magnésio|MgCl₂|🌊
-Al+cl2=alcl3|Cloreto de alumínio|AlCl₃|🧊
-Fe+cl2=fecl3|Cloreto férrico|FeCl₃|🟠
-Cu+cl2=cucl2|Cloreto de cobre(II)|CuCl₂|🟢
-Zn+cl2=zncl2|Cloreto de zinco|ZnCl₂|🔩
-Ag+cl2=agcl|Cloreto de prata|AgCl|⚪
-Na+br2=nabr|Brometo de sódio|NaBr|🏊
-Ag+br2=agbr|Brometo de prata|AgBr|📷
-K+i2=ki|Iodeto de potássio|KI|🥼
-Ag+i2=agi|Iodeto de prata|AgI|☔
-Na+f2=naf|Fluoreto de sódio|NaF|🦷
-Ca+f2=caf2|Fluorita|CaF₂|💜
-Al+f2=alf3|Fluoreto de alumínio|AlF₃|🏭
-Xe+f2=xef2|Difluoreto de xenônio|XeF₂|🪩
-Kr+f2=krf2|Difluoreto de criptônio|KrF₂|🧿
-hcl+nh3=nh4cl|Cloreto de amônio|NH₄Cl|🌬️
-cuo+h2so4=cuso4|Sulfato de cobre(II)|CuSO₄|🔵|CuO + H₂SO₄ → CuSO₄ + H₂O
-Ba+h2so4=baso4|Sulfato de bário|BaSO₄|🩻|Ba + H₂SO₄ → BaSO₄ + H₂
-Zn+h2so4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + H₂SO₄ → ZnSO₄ + H₂
-Mg+h2so4=mgso4|Sal de Epsom|MgSO₄|🛁|Mg + H₂SO₄ → MgSO₄ + H₂
-Fe+h2so4=feso4|Sulfato de ferro(II)|FeSO₄|🟩|Fe + H₂SO₄ → FeSO₄ + H₂
-Ca+h2so4=caso4|Sulfato de cálcio|CaSO₄|🧱|Ca + H₂SO₄ → CaSO₄ + H₂
-naoh+h2so4=na2so4|Sulfato de sódio|Na₂SO₄|🧺|2NaOH + H₂SO₄ → Na₂SO₄ + 2H₂O
-cao+co2=caco3|Calcário|CaCO₃|🐚
-caoh2+co2=caco3||||Ca(OH)₂ + CO₂ → CaCO₃ + H₂O
-naoh+co2=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaOH + CO₂ → Na₂CO₃ + H₂O|2NaOH + CO₂ → Na₂CO₃ + H₂O
-h2co3+na2co3=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|H₂CO₃ + Na₂CO₃ → 2NaHCO₃
-Ca+h3po4=ca3po42|Fosfato de cálcio|Ca₃(PO₄)₂|🦴|3Ca + 2H₃PO₄ → Ca₃(PO₄)₂ + 3H₂
-Ag+hno3=agno3|Nitrato de prata|AgNO₃|🪞|3Ag + 4HNO₃ → 3AgNO₃ + NO + 2H₂O
-Cu+hno3=cuno32|Nitrato de cobre(II)|Cu(NO₃)₂|🟦|3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
-na2co3+silica=vidro|Silicato de sódio|Na₂SiO₃|🪟|Na₂CO₃ + SiO₂ → Na₂SiO₃ + CO₂
-caco3+silica=casio3|Silicato de cálcio|CaSiO₃|🧱|CaCO₃ + SiO₂ → CaSiO₃ + CO₂
-caco3+vidro=casio3||||CaCO₃ + Na₂SiO₃ → CaSiO₃ + Na₂CO₃
-Ag+S=ag2s|Sulfeto de prata|Ag₂S|🖤
-Hg+S=hgs|Cinábrio|HgS|🩸
-Pb+S=pbs|Galena|PbS|⛏️
-Cd+S=cds|Amarelo de cádmio|CdS|🌻
-Zn+S=zns|Sulfeto de zinco|ZnS|🌟
-Fe+S=fes|Sulfeto de ferro(II)|FeS|⛓️
-fes+S=pirita|Pirita|FeS₂|✨
-Cu+S=cus|Sulfeto de cobre(II)|CuS|🫐
-Mo+S=mos2|Dissulfeto de molibdênio|MoS₂|🛢️
-Sb+S=sb2s3|Estibinita|Sb₂S₃|💫
-Ga+n2=gan|Nitreto de gálio|GaN|💡
-B+n2=bn|Nitreto de boro|BN|🔷
-Al+n2=aln|Nitreto de alumínio|AlN|🧱
-C+W=wc|Carbeto de tungstênio|WC|🛠️
-C+Si=sic|Carbeto de silício|SiC|🔸
-Ca+C=cac2|Carbeto de cálcio|CaC₂|🪔
-As+Ga=gaas|Arseneto de gálio|GaAs|📡
-In+P=inp|Fosfeto de índio|InP|📶
-Cd+Te=cdte|Telureto de cádmio|CdTe|🔆
-Cd+Se=cdse|Seleneto de cádmio|CdSe|🌈
-Se+Zn=znse|Seleneto de zinco|ZnSe|🔬
-cac2+agua=c2h2|Acetileno|C₂H₂|🔦|CaC₂ + 2H₂O → C₂H₂ + Ca(OH)₂
-c2h2+h2=c2h4|Eteno (etileno)|C₂H₄|🍏
-c2h4+h2=c2h6|Etano|C₂H₆|🕯️
-c2h4+agua=etanol|Etanol|C₂H₅OH|🍺
-ch4+o2=metanol|Metanol|CH₃OH|🪵
-co+h2=metanol
-etanol+o2=acetico|Ácido acético|CH₃COOH|🥗|C₂H₅OH + O₂ → CH₃COOH + H₂O
-metanol+o2=hcho|Formaldeído|HCHO|🧬|2CH₃OH + O₂ → 2HCHO + 2H₂O
-c2h2+c2h2=benzeno|Benzeno|C₆H₆|⬡|3C₂H₂ → C₆H₆
-ch4+cl2=ch3cl|Clorometano|CH₃Cl|☁️|CH₄ + Cl₂ → CH₃Cl + HCl
-nh3+co2=ureia|Ureia|CO(NH₂)₂|🌾|2NH₃ + CO₂ → CO(NH₂)₂ + H₂O
-Na+Hg=namalgama|Amálgama de sódio|Na–Hg|🔘
-ch3cl+namalgama=dmhg|Dimetilmercúrio|(CH₃)₂Hg|☠️|2CH₃Cl + 2Na + Hg → (CH₃)₂Hg + 2NaCl
-C+Fe=aco|Aço|Fe–C|⚙️
-Cr+Ni=nicromo|Nicromo|Ni–Cr|🍞
-nicromo+aco=inox|Aço inoxidável|Fe–Cr–Ni|🍴
-Cr+aco=inox||||Fe–C + Cr → Aço inoxidável
-Cu+Sn=bronze|Bronze|Cu–Sn|🔔
-Cu+Zn=latao|Latão|Cu–Zn|🎺
-Au+Cu=ourorose|Ouro rosé|Au–Cu|🌹
-Au+Pd=ourobranco|Ouro branco|Au–Pd|💍
-Pb+Sn=solda|Solda|Sn–Pb|🔩
-Ni+Ti=nitinol|Nitinol|Ni–Ti|🦾
-Ir+Pt=ptir|Liga platina-irídio|Pt–Ir|📏
-Al+Mg=magnalio|Magnálio|Al–Mg|✈️
-Al+Sc=alsc|Liga alumínio-escândio|Al–Sc|🚲
-Bi+Sn=ligafusivel|Liga fusível|Bi–Sn|🫠
-Cu+Ni=cuproniquel|Cuproníquel|Cu–Ni|🪙
-magnalio+Cu=duralumin|Duralumínio|Al–Cu–Mg|🛩️
-Al+Cu=duralumin||||Al + Cu → Duralumínio
-Ag+Cu=pratalei|Prata de lei|Ag–Cu|🍽️
-Ag+Au=electrum|Electrum|Au–Ag|🏺
-Au+Hg=amalgama|Amálgama de ouro|Au–Hg|🥈
-Fe+Ni=invar|Invar|Fe–Ni|🕰️
-Nb+Ti=nbti|Nióbio-titânio|Nb–Ti|🧲
-Be+Cu=cube|Cobre-berílio|Cu–Be|🔧
-K+Na=nak|Liga sódio-potássio|Na–K|🫗
-Pt+Rh=ptrh|Liga platina-ródio|Pt–Rh|🚗
-coo+alumina=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷
-nh3+hno3=nh4no3|Nitrato de amônio|NH₄NO₃|🌾|NH₃ + HNO₃ → NH₄NO₃
-hcl+nahco3=sal||||HCl + NaHCO₃ → NaCl + CO₂ + H₂O
-caco3+hcl=cacl2||||CaCO₃ + 2HCl → CaCl₂ + CO₂ + H₂O
-etanol+acetico=acetatoetila|Acetato de etila|CH₃COOC₂H₅|🍓|C₂H₅OH + CH₃COOH → CH₃COOC₂H₅ + H₂O
-hcl+Mg=mgcl2|Cloreto de magnésio|MgCl₂|🌊|Mg + 2HCl → MgCl₂ + H₂
-hcl+Zn=zncl2|Cloreto de zinco|ZnCl₂|🔩|Zn + 2HCl → ZnCl₂ + H₂
-hcl+Fe=fecl2|Cloreto de ferro(II)|FeCl₂|🟩|Fe + 2HCl → FeCl₂ + H₂
-hcl+Al=alcl3|Cloreto de alumínio|AlCl₃|🧊|2Al + 6HCl → 2AlCl₃ + 3H₂
-hcl+Ca=cacl2|Cloreto de cálcio|CaCl₂|❄️|Ca + 2HCl → CaCl₂ + H₂
-hcl+koh=kcl|Cloreto de potássio|KCl|🍌|HCl + KOH → KCl + H₂O
-hcl+caoh2=cacl2|Cloreto de cálcio|CaCl₂|❄️|Ca(OH)₂ + 2HCl → CaCl₂ + 2H₂O
-hcl+baoh2=bacl2|Cloreto de bário|BaCl₂|🧪|Ba(OH)₂ + 2HCl → BaCl₂ + 2H₂O
-hno3+naoh=nano3|Nitrato de sódio|NaNO₃|🧂|HNO₃ + NaOH → NaNO₃ + H₂O
-hno3+koh=kno3|Nitrato de potássio|KNO₃|✨|HNO₃ + KOH → KNO₃ + H₂O
-h2so4+koh=k2so4|Sulfato de potássio|K₂SO₄|🌾|H₂SO₄ + 2KOH → K₂SO₄ + 2H₂O
-h3po4+naoh=na3po4|Fosfato de sódio|Na₃PO₄|⚪|H₃PO₄ + 3NaOH → Na₃PO₄ + 3H₂O
-h2so4+baoh2=baso4|Sulfato de bário|BaSO₄|🩻|H₂SO₄ + Ba(OH)₂ → BaSO₄↓ + 2H₂O
-h2so4+caoh2=caso4|Sulfato de cálcio|CaSO₄|🧱|H₂SO₄ + Ca(OH)₂ → CaSO₄ + 2H₂O
-h2so4+nahco3=na2so4|Sulfato de sódio|Na₂SO₄|🧺|H₂SO₄ + 2NaHCO₃ → Na₂SO₄ + 2CO₂ + 2H₂O
-h2co3+naoh=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|H₂CO₃ + NaOH → NaHCO₃ + H₂O
-nh3+h2so4=amonsulfato|Sulfato de amônio|(NH₄)₂SO₄|🌾|2NH₃ + H₂SO₄ → (NH₄)₂SO₄
-nh4cl+naoh=nh3|Amônia|NH₃|🧹|NH₄Cl + NaOH → NH₃ + NaCl + H₂O
-na2co3+hcl=nahco3|Bicarbonato de sódio|NaHCO₃|🍰|Na₂CO₃ + HCl → NaHCO₃ + NaCl
-nahco3+nahco3=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaHCO₃ → Na₂CO₃ + CO₂ + H₂O
-h2o2+h2o2=agua|Água|H₂O|💧|2H₂O₂ → 2H₂O + O₂
-bacl2+na2so4=baso4|Sulfato de bário|BaSO₄|🩻|BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl
-agno3+sal=agcl|Cloreto de prata|AgCl|⚪|AgNO₃ + NaCl → AgCl↓ + NaNO₃
-cuso4+naoh=cuoh2|Hidróxido de cobre(II)|Cu(OH)₂|🔵|CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄
-feso4+naoh=feoh2|Hidróxido de ferro(II)|Fe(OH)₂|🟢|FeSO₄ + 2NaOH → Fe(OH)₂↓ + Na₂SO₄
-fecl3+naoh=feoh3|Hidróxido de ferro(III)|Fe(OH)₃|🟤|FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl
-alcl3+naoh=aloh3|Hidróxido de alumínio|Al(OH)₃|⚪|AlCl₃ + 3NaOH → Al(OH)₃↓ + 3NaCl
-znso4+naoh=znoh2|Hidróxido de zinco|Zn(OH)₂|⚪|ZnSO₄ + 2NaOH → Zn(OH)₂↓ + Na₂SO₄
-mgcl2+na2co3=mgco3|Carbonato de magnésio|MgCO₃|⚪|MgCl₂ + Na₂CO₃ → MgCO₃↓ + 2NaCl
-cacl2+na2co3=caco3|Carbonato de cálcio|CaCO₃|🐚|CaCl₂ + Na₂CO₃ → CaCO₃↓ + 2NaCl
-caso4+na2co3=caco3|Carbonato de cálcio|CaCO₃|🐚|CaSO₄ + Na₂CO₃ → CaCO₃↓ + Na₂SO₄
-cuso4+bacl2=baso4|Sulfato de bário|BaSO₄|🩻|CuSO₄ + BaCl₂ → BaSO₄↓ + CuCl₂
-ch4+o2=co2|Dióxido de carbono|CO₂|🌫️|CH₄ + 2O₂ → CO₂ + 2H₂O
-etanol+o2=co2|Dióxido de carbono|CO₂|🌫️|C₂H₅OH + 3O₂ → 2CO₂ + 3H₂O
-metanol+o2=co2|Dióxido de carbono|CO₂|🌫️|2CH₃OH + 3O₂ → 2CO₂ + 4H₂O
-c2h2+o2=co2|Dióxido de carbono|CO₂|🌫️|2C₂H₂ + 5O₂ → 4CO₂ + 2H₂O
-c2h4+o2=co2|Dióxido de carbono|CO₂|🌫️|C₂H₄ + 3O₂ → 2CO₂ + 2H₂O
-c2h6+o2=co2|Dióxido de carbono|CO₂|🌫️|2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O
-hcho+o2=co2|Dióxido de carbono|CO₂|🌫️|HCHO + O₂ → CO₂ + H₂O
-Ca+S=cas|Sulfeto de cálcio|CaS|💎|Ca + S → CaS
-Mg+S=mgs|Sulfeto de magnésio|MgS|🌟|Mg + S → MgS
-Al+S=al2s3|Sulfeto de alumínio|Al₂S₃|🟨|2Al + 3S → Al₂S₃
-Na+S=na2s|Sulfeto de sódio|Na₂S|🧂|2Na + S → Na₂S
-Li+n2=li3n|Nitreto de lítio|Li₃N|🔋|6Li + N₂ → 2Li₃N
-Mg+n2=mg3n2|Nitreto de magnésio|Mg₃N₂|✨|3Mg + N₂ → Mg₃N₂
-Ca+n2=ca3n2|Nitreto de cálcio|Ca₃N₂|🧱|3Ca + N₂ → Ca₃N₂
-Si+cl2=sicl4|Tetracloreto de silício|SiCl₄|🌫️|Si + 2Cl₂ → SiCl₄
-P+cl2=pcl3|Tricloreto de fósforo|PCl₃|⚗️|P₄ + 6Cl₂ → 4PCl₃
-B+f2=bf3|Trifluoreto de boro|BF₃|🧪|2B + 3F₂ → 2BF₃
-C+cl2=ccl4|Tetracloreto de carbono|CCl₄|🧪|C + 2Cl₂ → CCl₄
-Zn+cuso4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + CuSO₄ → ZnSO₄ + Cu
-Fe+cuso4=feso4|Sulfato de ferro(II)|FeSO₄|🟩|Fe + CuSO₄ → FeSO₄ + Cu
-Cu+agno3=cuno32|Nitrato de cobre(II)|Cu(NO₃)₂|🟦|Cu + 2AgNO₃ → Cu(NO₃)₂ + 2Ag
-cuo+h2=Cu|Cobre|Cu|🟠|CuO + H₂ → Cu + H₂O
-ferrugem+co=Fe|Ferro|Fe|⚙️|Fe₂O₃ + 3CO → 2Fe + 3CO₂
-ferrugem+C=Fe|Ferro|Fe|⚙️|2Fe₂O₃ + 3C → 4Fe + 3CO₂
-Hf+o2=hfo2|Óxido de háfnio|HfO₂|💠|Hf + O₂ → HfO₂
-Ta+o2=ta2o5|Pentóxido de tântalo|Ta₂O₅|💎|4Ta + 5O₂ → 2Ta₂O₅
-La+o2=la2o3|Óxido de lantânio|La₂O₃|🔆|4La + 3O₂ → 2La₂O₃
-Ce+o2=ceo2|Dióxido de cério|CeO₂|✨|Ce + O₂ → CeO₂
-Nd+o2=nd2o3|Óxido de neodímio|Nd₂O₃|🟪|4Nd + 3O₂ → 2Nd₂O₃`;
 
 async function carregarRecipeJson() {
   const controller = new AbortController();
@@ -1241,32 +883,21 @@ async function carregarRecipeJson() {
     });
     return { elements, recipes };
   } catch (error) {
-    console.warn('Não foi possível carregar recipe.json; usando o catálogo embutido.', error);
+    console.error('Não foi possível carregar recipe.json. O jogo precisa desse arquivo para iniciar.', error);
     return null;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-function lerElementosEmbutidos() {
-  return ELEMENTOS_TXT.split('\n').map(line => {
-    const [number, symbol, ...nameParts] = line.trim().split(' ');
-    return { number: Number(number), id: symbol, symbol, name: nameParts.join(' ') };
-  }).filter(item => item.symbol);
-}
-
-function lerReceitasEmbutidas() {
-  return RECEITAS_TXT.split('\n').map(line => {
-    const [ingredients, result] = line.trim().split('=');
-    const [productId, name, formula, icon, equation = ''] = (result || '').split('|');
-    const [a, b] = (ingredients || '').split('+');
-    return { a, b, productId, name, formula, icon, equation };
-  }).filter(item => item.a && item.b && item.productId && item.name && item.formula);
-}
-
 const catalogoJson = await carregarRecipeJson();
-const elementosAtivos = catalogoJson?.elements || lerElementosEmbutidos();
-const receitasDefinidas = catalogoJson?.recipes || lerReceitasEmbutidas();
+if (!catalogoJson) {
+  const centro = document.getElementById('dica-centro');
+  centro.innerHTML = '<div class="icone-dica">⚠️</div><h2>Não foi possível carregar recipe.json</h2><p>Coloque recipe.json na mesma pasta de index.html e abra o jogo pelo site ou por um servidor local. Abrir o HTML diretamente como arquivo não permite carregar o JSON.</p>';
+  return;
+}
+const elementosAtivos = catalogoJson.elements;
+const receitasDefinidas = catalogoJson.recipes;
 
 // =========================================================================
 // BANCO DE DADOS & FUNÇÕES QUÍMICAS
@@ -1300,7 +931,6 @@ elementosAtivos.forEach(item => {
   ELS.push(sy);
 });
 
-const todosSimbolosElementares = new Set(ELEMENTOS_TXT.split('\n').map(line => line.trim().split(' ')[1]).filter(Boolean));
 const simbolosDisponiveis = new Set(elementosAtivos.map(item => item.symbol));
 const pendentes = [...receitasDefinidas];
 const receitasAtivas = [];
@@ -1309,7 +939,7 @@ while (adicionouReceita) {
   adicionouReceita = false;
   for (let index = 0; index < pendentes.length;) {
     const recipe = pendentes[index];
-    const produtoElementarRemovido = todosSimbolosElementares.has(recipe.productId) && !simbolosDisponiveis.has(recipe.productId);
+    const produtoElementarRemovido = /^[A-Z][a-z]?$/.test(recipe.productId) && !simbolosDisponiveis.has(recipe.productId);
     if (simbolosDisponiveis.has(recipe.a) && simbolosDisponiveis.has(recipe.b) && !produtoElementarRemovido) {
       receitasAtivas.push(recipe);
       simbolosDisponiveis.add(recipe.productId);
