@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-10T21:40:25.854Z",
+  "exportedAt": "2026-10-10T21:43:58.634Z",
   "elements": [
     {
       "number": 1,
@@ -3051,6 +3051,16 @@
       "formula": "Pd2Og",
       "icon": "🧪",
       "equation": "2Pd + Og → Pd2Og"
+    },
+    {
+      "uid": "recipe-1791668635305-jfrius",
+      "a": "H",
+      "b": "Fr",
+      "productId": "h3fr5",
+      "name": "Chinelo",
+      "formula": "H3Fr5",
+      "icon": "🧪",
+      "equation": ""
     }
   ]
 }
