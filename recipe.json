@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-10T22:21:35.138Z",
+  "exportedAt": "2026-10-10T22:45:14.840Z",
   "elements": [
     {
       "number": 1,
@@ -3029,11 +3029,11 @@
       "productId": "wf6",
       "name": "Hexafluoreto de tungstênio",
       "formula": "WF₆",
-      "icon": "✴️",
+      "icon": "🧪",
       "equation": "W + 3F₂ → WF₆"
     },
     {
-      "uid": "recipe-234",
+      "uid": "recipe-1791670764277-053igy",
       "a": "Zn",
       "b": "agno3",
       "productId": "znno32",
@@ -3041,6 +3041,36 @@
       "formula": "Zn(NO₃)₂",
       "icon": "🪨",
       "equation": "Zn + 2AgNO₃ → Zn(NO₃)₂ + 2Ag"
+    },
+    {
+      "uid": "recipe-1791672050838-yd5ujh",
+      "a": "Nd",
+      "b": "Fe",
+      "productId": "nd2fe14",
+      "name": "Neodímio-Ferro",
+      "formula": "Nd₂Fe₁₄",
+      "icon": "⛓️",
+      "equation": "Nd₂ + Fe₁₄ → Nd₂Fe₁₄"
+    },
+    {
+      "uid": "recipe-1791672154310-03hu8n",
+      "a": "nd2fe14",
+      "b": "B",
+      "productId": "Nd2Fe14B",
+      "name": "ímã de neodímio",
+      "formula": "Nd₂Fe₁₄B",
+      "icon": "🧲",
+      "equation": "Nd₂Fe₁₄ + B → Nd₂Fe₁₄B"
+    },
+    {
+      "uid": "recipe-1791672292164-bdgc4n",
+      "a": "Fe",
+      "b": "O",
+      "productId": "fe3o4",
+      "name": "Ímã de Ferrite",
+      "formula": "Fe₃O₄",
+      "icon": "🧲",
+      "equation": "Fe₃ + O₄ → Fe₃O₄"
     }
   ]
 }
