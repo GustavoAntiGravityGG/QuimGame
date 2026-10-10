@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-10T21:46:13.546Z",
+  "exportedAt": "2026-10-10T22:20:10.399Z",
   "elements": [
     {
       "number": 1,
@@ -1533,16 +1533,6 @@
       "equation": ""
     },
     {
-      "uid": "recipe-83",
-      "a": "Ag",
-      "b": "cl2",
-      "productId": "agcl",
-      "name": "Cloreto de prata",
-      "formula": "AgCl",
-      "icon": "⚪",
-      "equation": ""
-    },
-    {
       "uid": "recipe-84",
       "a": "Na",
       "b": "br2",
@@ -3041,6 +3031,16 @@
       "formula": "WF₆",
       "icon": "🧪",
       "equation": "W + 3F₂ → WF₆"
+    },
+    {
+      "uid": "recipe-1791670764277-053igy",
+      "a": "Zn",
+      "b": "agno3",
+      "productId": "znno32",
+      "name": "Nitrato de zinco",
+      "formula": "Zn(NO₃)₂",
+      "icon": "🪨",
+      "equation": "Zn + 2AgNO₃ → Zn(NO₃)₂ + 2Ag"
     }
   ]
 }
