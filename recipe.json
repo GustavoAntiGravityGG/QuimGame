@@ -3029,11 +3029,11 @@
       "productId": "wf6",
       "name": "Hexafluoreto de tungstênio",
       "formula": "WF₆",
-      "icon": "🧪",
+      "icon": "✴️",
       "equation": "W + 3F₂ → WF₆"
     },
     {
-      "uid": "recipe-1791670764277-053igy",
+      "uid": "recipe-234",
       "a": "Zn",
       "b": "agno3",
       "productId": "znno32",
