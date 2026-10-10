@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "exportedAt": "2026-10-10T21:36:23.655Z",
+  "exportedAt": "2026-10-10T21:40:25.854Z",
   "elements": [
     {
       "number": 1,
@@ -3041,6 +3041,16 @@
       "formula": "WF₆",
       "icon": "🧪",
       "equation": "W + 3F₂ → WF₆"
+    },
+    {
+      "uid": "recipe-1791668392554-cmn1cv",
+      "a": "Pd",
+      "b": "Og",
+      "productId": "pd2og",
+      "name": "Arroz",
+      "formula": "Pd2Og",
+      "icon": "🧪",
+      "equation": "2Pd + Og → Pd2Og"
     }
   ]
 }
