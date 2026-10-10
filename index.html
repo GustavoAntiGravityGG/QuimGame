@@ -829,6 +829,7 @@ input[type="range"] {
 </dialog>
 
 <script>
+(async function iniciarJogoComArquivoDeReceitas() {
 // =========================================================================
 // BANCO DE DADOS QUÍMICO COMPLETO & FÓRMULAS BALANCEADAS
 // =========================================================================
@@ -1188,6 +1189,85 @@ La+o2=la2o3|Óxido de lantânio|La₂O₃|🔆|4La + 3O₂ → 2La₂O₃
 Ce+o2=ceo2|Dióxido de cério|CeO₂|✨|Ce + O₂ → CeO₂
 Nd+o2=nd2o3|Óxido de neodímio|Nd₂O₃|🟪|4Nd + 3O₂ → 2Nd₂O₃`;
 
+async function carregarRecipeJson() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(new URL('./recipe.json', location.href), {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`recipe.json respondeu ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data?.elements) || !data.elements.length || data.elements.length > 118 || !Array.isArray(data?.recipes) || data.recipes.length > 5000) {
+      throw new Error('Estrutura inválida: use arrays "elements" e "recipes".');
+    }
+
+    const elementSymbols = new Set();
+    const elementNumbers = new Set();
+    const elements = data.elements.map((item, index) => {
+      const number = Number(item?.number);
+      const id = String(item?.id || item?.symbol || '').trim();
+      const symbol = String(item?.symbol || item?.id || '').trim();
+      const name = String(item?.name || '').trim();
+      if (!Number.isInteger(number) || number < 1 || number > 118 || !/^[A-Z][a-z]?$/.test(symbol) || id !== symbol || !name) {
+        throw new Error(`Elemento ${index + 1} inválido.`);
+      }
+      if (elementSymbols.has(symbol) || elementNumbers.has(number)) throw new Error(`Elemento repetido: ${symbol}.`);
+      elementSymbols.add(symbol);
+      elementNumbers.add(number);
+      return { number, id, symbol, name };
+    });
+
+    const pairs = new Set();
+    const recipes = data.recipes.map((item, index) => {
+      const recipe = {
+        a: String(item?.a || '').trim(),
+        b: String(item?.b || '').trim(),
+        productId: String(item?.productId || '').trim(),
+        name: String(item?.name || '').trim(),
+        formula: String(item?.formula || '').trim(),
+        icon: String(item?.icon || '🧪').trim(),
+        equation: String(item?.equation || '').trim()
+      };
+      if (![recipe.a, recipe.b, recipe.productId].every(value => /^[A-Za-z0-9_-]{1,60}$/.test(value)) || !recipe.name || !recipe.formula) {
+        throw new Error(`Receita ${index + 1} inválida.`);
+      }
+      const pair = [recipe.a, recipe.b].sort().join('+');
+      if (pairs.has(pair)) throw new Error(`Combinação repetida: ${recipe.a} + ${recipe.b}.`);
+      pairs.add(pair);
+      return recipe;
+    });
+    return { elements, recipes };
+  } catch (error) {
+    console.warn('Não foi possível carregar recipe.json; usando o catálogo embutido.', error);
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function lerElementosEmbutidos() {
+  return ELEMENTOS_TXT.split('\n').map(line => {
+    const [number, symbol, ...nameParts] = line.trim().split(' ');
+    return { number: Number(number), id: symbol, symbol, name: nameParts.join(' ') };
+  }).filter(item => item.symbol);
+}
+
+function lerReceitasEmbutidas() {
+  return RECEITAS_TXT.split('\n').map(line => {
+    const [ingredients, result] = line.trim().split('=');
+    const [productId, name, formula, icon, equation = ''] = (result || '').split('|');
+    const [a, b] = (ingredients || '').split('+');
+    return { a, b, productId, name, formula, icon, equation };
+  }).filter(item => item.a && item.b && item.productId && item.name && item.formula);
+}
+
+const catalogoJson = await carregarRecipeJson();
+const elementosAtivos = catalogoJson?.elements || lerElementosEmbutidos();
+const receitasDefinidas = catalogoJson?.recipes || lerReceitasEmbutidas();
+
 // =========================================================================
 // BANCO DE DADOS & FUNÇÕES QUÍMICAS
 // =========================================================================
@@ -1214,16 +1294,33 @@ function deduzirCategoria(id, sub, el) {
   return 'sais';
 }
 
-ELEMENTOS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
-  const [num, sy, nm] = l.split(' ');
-  DB[sy] = { id: sy, s: sy, n: nm, num: +num, sub: 'nº ' + num, el: 1, cat: 'elementos' };
+elementosAtivos.forEach(item => {
+  const sy = item.symbol;
+  DB[sy] = { id: item.id || sy, s: sy, n: item.name, num: Number(item.number), sub: 'nº ' + item.number, el: 1, cat: 'elementos' };
   ELS.push(sy);
 });
 
-RECEITAS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
-  const [ing, res] = l.split('=');
-  const [id, nome, f, em, eq] = res.split('|');
-  const [a, b] = ing.split('+');
+const todosSimbolosElementares = new Set(ELEMENTOS_TXT.split('\n').map(line => line.trim().split(' ')[1]).filter(Boolean));
+const simbolosDisponiveis = new Set(elementosAtivos.map(item => item.symbol));
+const pendentes = [...receitasDefinidas];
+const receitasAtivas = [];
+let adicionouReceita = true;
+while (adicionouReceita) {
+  adicionouReceita = false;
+  for (let index = 0; index < pendentes.length;) {
+    const recipe = pendentes[index];
+    const produtoElementarRemovido = todosSimbolosElementares.has(recipe.productId) && !simbolosDisponiveis.has(recipe.productId);
+    if (simbolosDisponiveis.has(recipe.a) && simbolosDisponiveis.has(recipe.b) && !produtoElementarRemovido) {
+      receitasAtivas.push(recipe);
+      simbolosDisponiveis.add(recipe.productId);
+      pendentes.splice(index, 1);
+      adicionouReceita = true;
+    } else index += 1;
+  }
+}
+
+receitasAtivas.forEach(recipe => {
+  const { a, b, productId: id, name: nome, formula: f, icon: em, equation: eq } = recipe;
   const k = chave(a, b);
   if (nome && !DB[id]) {
     DB[id] = { id, s: em, n: nome, sub: f, cat: deduzirCategoria(id, f, false) };
@@ -2141,6 +2238,7 @@ ajustarTamanhoCanvas();
 
 mols = Array.from({ length: 18 }, criarMolecula);
 renderizarQuadro();
+})();
 </script>
 </body>
 </html>
