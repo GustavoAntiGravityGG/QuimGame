@@ -282,24 +282,6 @@ h1 {
   z-index: 10;
 }
 .item:hover .del-btn { display: flex; }
-.item.elemento {
-  min-width: 50px;
-  max-width: 58px;
-  padding: 5px 7px;
-  border-radius: 10px;
-  gap: 2px;
-}
-.item.elemento .num {
-  display: block;
-  color: var(--mute);
-  font: 10px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-.item.elemento .s {
-  font-size: 19px;
-  line-height: 1;
-  margin: 0;
-  font-weight: 700;
-}
 
 .pop { animation: pop .4s cubic-bezier(.17, 1.4, .35, 1); }
 .sh { animation: sh .32s ease-in-out; }
@@ -362,7 +344,8 @@ h1 {
 
 /* ==================== PAINEL LATERAL ==================== */
 #painel {
-  flex: 0 0 300px;
+  flex: 0 0 280px;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -371,8 +354,20 @@ h1 {
   transition: background-color .3s, border-color .3s;
   z-index: var(--z-panel);
 }
+#divisor-painel {
+  flex: 0 0 6px;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--ln);
+  transition: background-color .2s;
+  user-select: none;
+  z-index: calc(var(--z-panel) + 1);
+}
+#divisor-painel:hover,
+#divisor-painel:focus-visible,
+#divisor-painel.arrastando { background: var(--ac); }
 #topo-painel {
-  padding: 10px 10px 8px;
+  padding: 14px 14px 10px;
   border-bottom: 1px solid var(--ln);
   display: flex;
   flex-direction: column;
@@ -421,7 +416,7 @@ h1 {
 }
 #filtros::-webkit-scrollbar { display: none; }
 .chip {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--ln);
   background: var(--bg);
@@ -486,7 +481,7 @@ h1 {
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 6px 8px;
+  padding: 7px 10px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: none;
@@ -538,7 +533,7 @@ h1 {
 }
 
 #rodape-painel {
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-top: 1px solid var(--ln);
   display: flex;
   gap: 8px;
@@ -677,8 +672,13 @@ input[type="range"] {
   h1 span.titulo-txt { display: none; }
   #painel {
     flex: 0 0 45vh;
+    min-width: 0;
     border-left: 0;
     border-top: 1px solid var(--ln);
+  }
+  #divisor-painel {
+    flex-basis: 6px;
+    cursor: row-resize;
   }
   #barra { flex-wrap: wrap; }
 }
@@ -688,6 +688,123 @@ input[type="range"] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ==================== POPUP DE CHANGELOG ==================== */
+#modal-changelog {
+  width: min(520px, 92vw);
+  max-height: 85vh;
+  padding: 0;
+  border: 2px solid #34d399;
+  border-radius: 20px;
+  background: #ecfdf5;
+  color: #064e3b;
+  box-shadow: 0 0 40px rgba(52, 211, 153, 0.35), 0 0 80px rgba(16, 185, 129, 0.15), 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: changelog-entrada .5s cubic-bezier(.17, 1.2, .35, 1);
+}
+#modal-changelog:not([open]) { display: none; }
+#modal-changelog[open] { display: flex; flex-direction: column; }
+#modal-changelog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(5px);
+}
+@keyframes changelog-entrada {
+  0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.changelog-header {
+  padding: 28px 28px 18px;
+  border-bottom: 1px solid #a7f3d0;
+}
+.changelog-icones {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 36px;
+}
+.changelog-header h2 {
+  margin: 0 0 10px;
+  font: 800 22px/1.2 Georgia, "Times New Roman", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #065f46;
+}
+.changelog-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #10b981;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.changelog-body {
+  padding: 20px 28px 28px;
+  max-height: 45vh;
+  overflow-y: auto;
+}
+.changelog-body ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.changelog-body li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #065f46;
+}
+.changelog-body li .cl-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+  margin-top: 1px;
+}
+.changelog-body li b {
+  color: #047857;
+}
+.changelog-body .secao-titulo {
+  font: 700 13px/1 -apple-system, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #10b981;
+  padding-top: 8px;
+  margin-bottom: -2px;
+}
+.changelog-footer {
+  padding: 16px 28px;
+  border-top: 1px solid #a7f3d0;
+  display: flex;
+  justify-content: flex-end;
+  background: #d1fae5;
+}
+.changelog-footer .bt-changelog {
+  padding: 9px 28px;
+  border: 1.5px solid #10b981;
+  border-radius: 999px;
+  background: #059669;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .15s, box-shadow .2s;
+}
+.changelog-footer .bt-changelog:hover {
+  background: #047857;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.3);
+}
+.changelog-footer .bt-changelog:active {
+  transform: scale(0.97);
 }
 </style>
 </head>
@@ -709,7 +826,10 @@ input[type="range"] {
       <button class="bt" id="organizar" title="Alinhar elementos soltos na mesa">📐 Organizar</button>
       <button class="bt" id="dica-btn" title="Receber dica de combinação química">💡 Dica</button>
       <button class="bt" id="livro-btn" title="Abrir Livro de Descobertas e Receitas">📖 Enciclopédia</button>
+      <button class="bt" id="catalogo-btn" title="Importar catálogo de receitas em JSON" aria-label="Importar catálogo JSON">📥 Importar JSON</button>
+      <input id="catalogo-input" type="file" accept=".json,application/json" hidden>
       <button class="bt" id="cfg-btn" title="Configurações e Áudio">⚙️ Config</button>
+      <button class="bt" id="tema-btn" title="Alternar tema"></button>
     </div>
   </div>
 
@@ -724,6 +844,7 @@ input[type="range"] {
   <div id="eqn" role="status"></div>
 </main>
 
+<div id="divisor-painel" role="separator" aria-label="Redimensionar barra lateral" aria-controls="painel" aria-orientation="vertical" tabindex="0" title="Arraste ou use as setas para redimensionar"></div>
 <aside id="painel">
   <div id="topo-painel">
     <div class="campo-busca">
@@ -737,13 +858,13 @@ input[type="range"] {
       <button class="chip" data-f="descobertas">✨ Descobertas</button>
       <button class="chip" data-f="acidos">⚗️ Ácidos & Bases</button>
       <button class="chip" data-f="sais">🧂 Sais & Óxidos</button>
-      <button class="chip" data-f="ligas">🔩 Ligas</button>
+      <button class="chip" data-f="ligas">🔩 Metais & Ligas</button>
       <button class="chip" data-f="organicos">🍃 Orgânicos</button>
     </div>
 
     <div id="progresso-box">
       <div class="prog-info">
-        <span><span id="prog-label">Descobertas</span>: <b id="prog-txt">0 / 0</b></span>
+        <span>Descobertas: <b id="prog-txt">0 / 0</b></span>
         <span id="rank-txt">Iniciante</span>
       </div>
       <div class="prog-barra">
@@ -766,7 +887,7 @@ input[type="range"] {
     <button class="bt on" id="aba-dc-btn">✨ Descobertas (<span id="cont-dc">0</span>)</button>
     <button class="bt" id="aba-cr-btn">📜 Livro de Receitas (<span id="cont-cr">0</span>)</button>
     <div style="flex:1"></div>
-    <button class="bt" id="modo-professor-btn" title="Marcar temporariamente todas as fórmulas como concluídas">🎓 Modo Estudo</button>
+    <button class="bt" id="modo-professor-btn" title="Revelar todas as receitas para estudo">🎓 Modo Estudo</button>
     <button class="bt bt-icon" id="fechar-receitas-btn">✕</button>
   </div>
   <div class="busca-modal">
@@ -828,76 +949,297 @@ input[type="range"] {
   </div>
 </dialog>
 
+<!-- DIÁLOGO: LOG DE ATUALIZAÇÃO -->
+<dialog id="modal-changelog">
+  <div class="changelog-header">
+    <div class="changelog-icones">
+      <span>🌌</span>
+      <span>⏳</span>
+      <span>⚡</span>
+    </div>
+    <h2>Atualização do Laboratório</h2>
+    <div class="changelog-badge">
+      ⚠️ Versão 2.0 Estabilizada
+    </div>
+  </div>
+  <div class="changelog-body">
+    <p style="font-style:italic; margin:0 0 14px; color:#047857; line-height:1.5;">
+      “Uma violenta reação em cadeia nos reagentes estabilizou todas as equações químicas e recalibrou a bancada de fusão para máxima precisão científica.”
+    </p>
+    <p style="margin:0 0 14px; font-size:13.5px; line-height:1.5;">
+      Por decreto supremo dos <b>Alquimistas do Laboratório</b>, as seguintes correções e melhorias foram aplicadas:
+    </p>
+    <ul>
+      <li>
+        <span class="cl-icon">🧪</span>
+        <div><b>Fórmulas & Metais:</b> Fórmulas químicas balanceadas, correção de sínteses e categorização correta de metais e ligas.</div>
+      </li>
+      <li>
+        <span class="cl-icon">🖐️</span>
+        <div><b>Motor de Fusão Estável:</b> Novo sistema de arrasto global e colisão fluida sem travamentos.</div>
+      </li>
+      <li>
+        <span class="cl-icon">📖</span>
+        <div><b>Enciclopédia & Receitas:</b> Abas isoladas com busca em tempo real e Modo Estudo sem sobreposições.</div>
+      </li>
+      <li>
+        <span class="cl-icon">⚙️</span>
+        <div><b>Painel de Ajustes:</b> Botão com texto e controle independente de música ambiente sintetizada e efeitos.</div>
+      </li>
+    </ul>
+  </div>
+  <div class="changelog-footer">
+    <button class="bt-changelog" id="fechar-changelog-btn">Entrar no Laboratório</button>
+  </div>
+</dialog>
+
 <script>
-(async function iniciarJogoComArquivoDeReceitas() {
+// =========================================================================
+// BANCO DE DADOS QUÍMICO COMPLETO & FÓRMULAS BALANCEADAS
+// =========================================================================
 
-async function carregarRecipeJson() {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch(new URL('./recipe.json', location.href), {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-      signal: controller.signal
-    });
-    if (!response.ok) throw new Error(`recipe.json respondeu ${response.status}`);
-    const data = await response.json();
-    if (!Array.isArray(data?.elements) || !data.elements.length || data.elements.length > 118 || !Array.isArray(data?.recipes) || data.recipes.length > 5000) {
-      throw new Error('Estrutura inválida: use arrays "elements" e "recipes".');
-    }
+const ELEMENTOS_TXT = `1 H Hidrogênio
+2 He Hélio
+3 Li Lítio
+4 Be Berílio
+5 B Boro
+6 C Carbono
+7 N Nitrogênio
+8 O Oxigênio
+9 F Flúor
+10 Ne Neônio
+11 Na Sódio
+12 Mg Magnésio
+13 Al Alumínio
+14 Si Silício
+15 P Fósforo
+16 S Enxofre
+17 Cl Cloro
+18 Ar Argônio
+19 K Potássio
+20 Ca Cálcio
+21 Sc Escândio
+22 Ti Titânio
+23 V Vanádio
+24 Cr Cromo
+25 Mn Manganês
+26 Fe Ferro
+27 Co Cobalto
+28 Ni Níquel
+29 Cu Cobre
+30 Zn Zinco
+31 Ga Gálio
+32 Ge Germânio
+33 As Arsênio
+34 Se Selênio
+35 Br Bromo
+36 Kr Criptônio
+37 Rb Rubídio
+38 Sr Estrôncio
+39 Y Ítrio
+40 Zr Zircônio
+41 Nb Nióbio
+42 Mo Molibdênio
+43 Tc Tecnécio
+44 Ru Rutênio
+45 Rh Ródio
+46 Pd Paládio
+47 Ag Prata
+48 Cd Cádmio
+49 In Índio
+50 Sn Estanho
+51 Sb Antimônio
+52 Te Telúrio
+53 I Iodo
+54 Xe Xenônio
+55 Cs Césio
+56 Ba Bário
+74 W Tungstênio
+75 Re Rênio
+76 Os Ósmio
+77 Ir Irídio
+78 Pt Platina
+79 Au Ouro
+80 Hg Mercúrio
+81 Tl Tálio
+82 Pb Chumbo
+83 Bi Bismuto`;
 
-    const elementSymbols = new Set();
-    const elementNumbers = new Set();
-    const elements = data.elements.map((item, index) => {
-      const number = Number(item?.number);
-      const id = String(item?.id || item?.symbol || '').trim();
-      const symbol = String(item?.symbol || item?.id || '').trim();
-      const name = String(item?.name || '').trim();
-      if (!Number.isInteger(number) || number < 1 || number > 118 || !/^[A-Z][a-z]?$/.test(symbol) || id !== symbol || !name) {
-        throw new Error(`Elemento ${index + 1} inválido.`);
-      }
-      if (elementSymbols.has(symbol) || elementNumbers.has(number)) throw new Error(`Elemento repetido: ${symbol}.`);
-      elementSymbols.add(symbol);
-      elementNumbers.add(number);
-      return { number, id, symbol, name };
-    });
-
-    const pairs = new Set();
-    const recipes = data.recipes.map((item, index) => {
-      const recipe = {
-        a: String(item?.a || '').trim(),
-        b: String(item?.b || '').trim(),
-        productId: String(item?.productId || '').trim(),
-        name: String(item?.name || '').trim(),
-        formula: String(item?.formula || '').trim(),
-        icon: String(item?.icon || '🧪').trim(),
-        equation: String(item?.equation || '').trim()
-      };
-      if (![recipe.a, recipe.b, recipe.productId].every(value => /^[A-Za-z0-9_-]{1,60}$/.test(value)) || !recipe.name || !recipe.formula) {
-        throw new Error(`Receita ${index + 1} inválida.`);
-      }
-      const pair = [recipe.a, recipe.b].sort().join('+');
-      if (pairs.has(pair)) throw new Error(`Combinação repetida: ${recipe.a} + ${recipe.b}.`);
-      pairs.add(pair);
-      return recipe;
-    });
-    return { elements, recipes };
-  } catch (error) {
-    console.error('Não foi possível carregar recipe.json. O jogo precisa desse arquivo para iniciar.', error);
-    return null;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-const catalogoJson = await carregarRecipeJson();
-if (!catalogoJson) {
-  const centro = document.getElementById('dica-centro');
-  centro.innerHTML = '<div class="icone-dica">⚠️</div><h2>Não foi possível carregar recipe.json</h2><p>Coloque recipe.json na mesma pasta de index.html e abra o jogo pelo site ou por um servidor local. Abrir o HTML diretamente como arquivo não permite carregar o JSON.</p>';
-  return;
-}
-const elementosAtivos = catalogoJson.elements;
-const receitasDefinidas = catalogoJson.recipes;
+const RECEITAS_TXT = `H+H=h2|Gás hidrogênio|H₂|🎈|2H → H₂
+O+O=o2|Gás oxigênio|O₂|🫧|2O → O₂
+N+N=n2|Gás nitrogênio|N₂|💨|2N → N₂
+F+F=f2|Gás flúor|F₂|🟡|2F → F₂
+Cl+Cl=cl2|Gás cloro|Cl₂|🟢|2Cl → Cl₂
+Br+Br=br2|Bromo líquido|Br₂|🟤|2Br → Br₂
+I+I=i2|Iodo sólido|I₂|🟣|2I → I₂
+O+o2=o3|Ozônio|O₃|🌐|O + O₂ → O₃
+h2+o2=agua|Água|H₂O|💧|2H₂ + O₂ → 2H₂O
+h2+O=agua||||2H₂ + O₂ → 2H₂O
+agua+o2=h2o2|Água oxigenada|H₂O₂|🩹|2H₂O + O₂ → 2H₂O₂
+agua+O=h2o2||||H₂O + O → H₂O₂
+h2+n2=nh3|Amônia|NH₃|🧴|3H₂ + N₂ → 2NH₃
+h2+cl2=hcl|Ácido clorídrico|HCl|🧪
+h2+f2=hf|Ácido fluorídrico|HF|🫗
+h2+br2=hbr|Ácido bromídrico|HBr|🟠
+h2+i2=hi|Ácido iodídrico|HI|🔮
+C+h2=ch4|Metano|CH₄|🔥
+h2+S=h2s|Gás sulfídrico|H₂S|🥚
+Hg+h2=hgh2|Hidreto de mercúrio(II)|HgH₂|🌡️
+h2+Li=lih|Hidreto de lítio|LiH|🔋
+h2+Na=nah|Hidreto de sódio|NaH|⚪
+h2+Ca=cah2|Hidreto de cálcio|CaH₂|🏔️
+C+o2=co2|Dióxido de carbono|CO₂|🌫️
+C+co2=co|Monóxido de carbono|CO|☁️
+co+o2=co2
+S+o2=so2|Dióxido de enxofre|SO₂|🌋
+so2+o2=so3|Trióxido de enxofre|SO₃|🟨
+n2+o2=no|Monóxido de nitrogênio|NO|🟠
+no+o2=no2|Dióxido de nitrogênio|NO₂|🟤
+Ca+o2=cao|Cal virgem|CaO|🪨
+Mg+o2=mgo|Óxido de magnésio|MgO|✨
+Fe+o2=ferrugem|Ferrugem (Óxido de ferro III)|Fe₂O₃|🟫
+Al+o2=alumina|Alumina|Al₂O₃|💎
+Si+o2=silica|Sílica|SiO₂|🏖️
+Zn+o2=zno|Óxido de zinco|ZnO|☀️
+Ti+o2=tio2|Dióxido de titânio|TiO₂|🤍
+Cu+o2=cuo|Óxido de cobre(II)|CuO|⚫
+Cr+o2=cr2o3|Óxido de cromo(III)|Cr₂O₃|🌿
+Mn+o2=mno2|Dióxido de manganês|MnO₂|🔋
+P+o2=p2o5|Pentóxido de fósforo|P₄O₁₀|⬜
+Zr+o2=zro2|Zircônia|ZrO₂|💠
+Co+o2=coo|Óxido de cobalto(II)|CoO|🔹
+Ni+o2=nio|Óxido de níquel(II)|NiO|🟩
+Na+o2=na2o|Óxido de sódio|Na₂O|🔆
+K+o2=k2o|Óxido de potássio|K₂O|🌱
+Li+o2=li2o|Óxido de lítio|Li₂O|🪫
+Ba+o2=bao|Óxido de bário|BaO|🎇
+B+o2=b2o3|Óxido de boro|B₂O₃|🔶
+V+o2=v2o5|Pentóxido de vanádio|V₂O₅|🟧
+W+o2=wo3|Trióxido de tungstênio|WO₃|🟡
+Pb+o2=pbo|Óxido de chumbo(II)|PbO|🟥
+Sn+o2=sno2|Dióxido de estanho|SnO₂|🥫
+Hg+o2=hgo|Óxido de mercúrio(II)|HgO|🔴
+Bi+o2=bi2o3|Óxido de bismuto|Bi₂O₃|🌤️
+agua+so3=h2so4|Ácido sulfúrico|H₂SO₄|⚗️
+agua+so2=h2so3|Ácido sulfuroso|H₂SO₃|🌧️
+agua+co2=h2co3|Ácido carbônico|H₂CO₃|🥂
+agua+no2=hno3|Ácido nítrico|HNO₃|🧫|3NO₂ + H₂O → 2HNO₃ + NO
+agua+p2o5=h3po4|Ácido fosfórico|H₃PO₄|🥤
+agua+b2o3=h3bo3|Ácido bórico|H₃BO₃|👁️
+agua+wo3=h2wo4|Ácido túngstico|H₂WO₄|🔦
+Na+agua=naoh|Soda cáustica|NaOH|🧼|2Na + 2H₂O → 2NaOH + H₂
+K+agua=koh|Hidróxido de potássio|KOH|🧽|2K + 2H₂O → 2KOH + H₂
+Li+agua=lioh|Hidróxido de lítio|LiOH|🚀|2Li + 2H₂O → 2LiOH + H₂
+Ba+agua=baoh2|Hidróxido de bário|Ba(OH)₂|🧂|Ba + 2H₂O → Ba(OH)₂ + H₂
+Ca+agua=caoh2||||Ca + 2H₂O → Ca(OH)₂ + H₂
+Mg+agua=mgoh2||||Mg + 2H₂O → Mg(OH)₂ + H₂
+agua+cao=caoh2|Cal hidratada|Ca(OH)₂|🏗️
+agua+mgo=mgoh2|Leite de magnésia|Mg(OH)₂|🥛
+agua+na2o=naoh
+agua+k2o=koh
+agua+bao=baoh2
+agua+nh3=nh4oh|Hidróxido de amônio|NH₄OH|🧹
+Na+cl2=sal|Sal de cozinha|NaCl|🧂
+hcl+naoh=sal||||HCl + NaOH → NaCl + H₂O
+K+cl2=kcl|Cloreto de potássio|KCl|🍌
+Ca+cl2=cacl2|Cloreto de cálcio|CaCl₂|❄️
+Mg+cl2=mgcl2|Cloreto de magnésio|MgCl₂|🌊
+Al+cl2=alcl3|Cloreto de alumínio|AlCl₃|🧊
+Fe+cl2=fecl3|Cloreto férrico|FeCl₃|🟠
+Cu+cl2=cucl2|Cloreto de cobre(II)|CuCl₂|🟢
+Zn+cl2=zncl2|Cloreto de zinco|ZnCl₂|🔩
+Ag+cl2=agcl|Cloreto de prata|AgCl|⚪
+Na+br2=nabr|Brometo de sódio|NaBr|🏊
+Ag+br2=agbr|Brometo de prata|AgBr|📷
+K+i2=ki|Iodeto de potássio|KI|🥼
+Ag+i2=agi|Iodeto de prata|AgI|☔
+Na+f2=naf|Fluoreto de sódio|NaF|🦷
+Ca+f2=caf2|Fluorita|CaF₂|💜
+Al+f2=alf3|Fluoreto de alumínio|AlF₃|🏭
+Xe+f2=xef2|Difluoreto de xenônio|XeF₂|🪩
+Kr+f2=krf2|Difluoreto de criptônio|KrF₂|🧿
+hcl+nh3=nh4cl|Cloreto de amônio|NH₄Cl|🌬️
+cuo+h2so4=cuso4|Sulfato de cobre(II)|CuSO₄|🔵|CuO + H₂SO₄ → CuSO₄ + H₂O
+Ba+h2so4=baso4|Sulfato de bário|BaSO₄|🩻|Ba + H₂SO₄ → BaSO₄ + H₂
+Zn+h2so4=znso4|Sulfato de zinco|ZnSO₄|💧|Zn + H₂SO₄ → ZnSO₄ + H₂
+Mg+h2so4=mgso4|Sal de Epsom|MgSO₄|🛁|Mg + H₂SO₄ → MgSO₄ + H₂
+Fe+h2so4=feso4|Sulfato de ferro(II)|FeSO₄|🟩|Fe + H₂SO₄ → FeSO₄ + H₂
+Ca+h2so4=caso4|Gesso|CaSO₄|🧱|Ca + H₂SO₄ → CaSO₄ + H₂
+naoh+h2so4=na2so4|Sulfato de sódio|Na₂SO₄|🧺|2NaOH + H₂SO₄ → Na₂SO₄ + 2H₂O
+cao+co2=caco3|Calcário|CaCO₃|🐚
+caoh2+co2=caco3||||Ca(OH)₂ + CO₂ → CaCO₃ + H₂O
+naoh+co2=na2co3|Carbonato de sódio|Na₂CO₃|🥣|2NaOH + CO₂ → Na₂CO₃ + H₂O
+h2co3+na2co3=nahco3|Bicarbonato de sódio|NaHCO₃|🍰
+Ca+h3po4=ca3po42|Fosfato de cálcio|Ca₃(PO₄)₂|🦴|3Ca + 2H₃PO₄ → Ca₃(PO₄)₂ + 3H₂
+Ag+hno3=agno3|Nitrato de prata|AgNO₃|🪞|3Ag + 4HNO₃ → 3AgNO₃ + NO + 2H₂O
+Cu+hno3=cuno32|Nitrato de cobre(II)|Cu(NO₃)₂|🟦|3Cu + 8HNO₃ → 3Cu(NO₃)₂ + 2NO + 4H₂O
+na2co3+silica=vidro|Vidro de silicato|Na₂SiO₃|🪟|Na₂CO₃ + SiO₂ → Na₂SiO₃ + CO₂
+caco3+silica=casio3|Silicato de cálcio|CaSiO₃|🧱|CaCO₃ + SiO₂ → CaSiO₃ + CO₂
+caco3+vidro=casio3||||CaCO₃ + Na₂SiO₃ → CaSiO₃ + Na₂CO₃
+Ag+S=ag2s|Sulfeto de prata|Ag₂S|🖤
+Hg+S=hgs|Cinábrio|HgS|🩸
+Pb+S=pbs|Galena|PbS|⛏️
+Cd+S=cds|Amarelo de cádmio|CdS|🌻
+Zn+S=zns|Sulfeto de zinco|ZnS|🌟
+Fe+S=fes|Sulfeto de ferro(II)|FeS|⛓️
+fes+S=pirita|Pirita|FeS₂|✨
+Cu+S=cus|Sulfeto de cobre(II)|CuS|🫐
+Mo+S=mos2|Dissulfeto de molibdênio|MoS₂|🛢️
+Sb+S=sb2s3|Estibinita|Sb₂S₃|💫
+Ga+n2=gan|Nitreto de gálio|GaN|💡
+B+n2=bn|Nitreto de boro|BN|🔷
+Al+n2=aln|Nitreto de alumínio|AlN|🧱
+C+W=wc|Carbeto de tungstênio|WC|🛠️
+C+Si=sic|Carbeto de silício|SiC|🔸
+Ca+C=cac2|Carbeto de cálcio|CaC₂|🪔
+As+Ga=gaas|Arseneto de gálio|GaAs|📡
+In+P=inp|Fosfeto de índio|InP|📶
+Cd+Te=cdte|Telureto de cádmio|CdTe|🔆
+Cd+Se=cdse|Seleneto de cádmio|CdSe|🌈
+Se+Zn=znse|Seleneto de zinco|ZnSe|🔬
+cac2+agua=c2h2|Acetileno|C₂H₂|🔦|CaC₂ + 2H₂O → C₂H₂ + Ca(OH)₂
+c2h2+h2=c2h4|Eteno (etileno)|C₂H₄|🍏
+c2h4+h2=c2h6|Etano|C₂H₆|🕯️
+c2h4+agua=etanol|Etanol|C₂H₅OH|🍺
+ch4+o2=metanol|Metanol|CH₃OH|🪵
+co+h2=metanol
+etanol+o2=acetico|Ácido acético|CH₃COOH|🥗|C₂H₅OH + O₂ → CH₃COOH + H₂O
+metanol+o2=hcho|Formaldeído|HCHO|🧬|2CH₃OH + O₂ → 2HCHO + 2H₂O
+c2h2+c2h2=benzeno|Benzeno|C₆H₆|⬡|3C₂H₂ → C₆H₆
+ch4+cl2=ch3cl|Clorometano|CH₃Cl|☁️|CH₄ + Cl₂ → CH₃Cl + HCl
+nh3+co2=ureia|Ureia|CO(NH₂)₂|🌾|2NH₃ + CO₂ → CO(NH₂)₂ + H₂O
+Na+Hg=namalgama|Amálgama de sódio|Na–Hg|🔘
+ch3cl+namalgama=dmhg|Dimetilmercúrio|(CH₃)₂Hg|☠️|2CH₃Cl + 2Na + Hg → (CH₃)₂Hg + 2NaCl
+C+Fe=aco|Aço|Fe–C|⚙️
+Cr+Ni=nicromo|Nicromo|Ni–Cr|🍞
+nicromo+aco=inox|Aço inoxidável|Fe–Cr–Ni|🍴
+Cr+aco=inox||||Fe–C + Cr → Aço inoxidável
+Cu+Sn=bronze|Bronze|Cu–Sn|🔔
+Cu+Zn=latao|Latão|Cu–Zn|🎺
+Au+Cu=ourorose|Ouro rosé|Au–Cu|🌹
+Au+Pd=ourobranco|Ouro branco|Au–Pd|💍
+Pb+Sn=solda|Solda|Sn–Pb|🔩
+Ni+Ti=nitinol|Nitinol|Ni–Ti|🦾
+Ir+Pt=ptir|Liga platina-irídio|Pt–Ir|📏
+Al+Mg=magnalio|Magnálio|Al–Mg|✈️
+Al+Sc=alsc|Liga alumínio-escândio|Al–Sc|🚲
+Bi+Sn=ligafusivel|Liga fusível|Bi–Sn|🫠
+Cu+Ni=cuproniquel|Cuproníquel|Cu–Ni|🪙
+magnalio+Cu=duralumin|Duralumínio|Al–Cu–Mg|🛩️
+Al+Cu=duralumin||||Al + Cu → Duralumínio
+Ag+Cu=pratalei|Prata de lei|Ag–Cu|🍽️
+Ag+Au=electrum|Electrum|Au–Ag|🏺
+Au+Hg=amalgama|Amálgama de ouro|Au–Hg|🥈
+Fe+Ni=invar|Invar|Fe–Ni|🕰️
+Nb+Ti=nbti|Nióbio-titânio|Nb–Ti|🧲
+Be+Cu=cube|Cobre-berílio|Cu–Be|🔧
+K+Na=nak|Liga sódio-potássio|Na–K|🫗
+Pt+Rh=ptrh|Liga platina-ródio|Pt–Rh|🚗
+coo+alumina=azulcobalto|Azul de cobalto|CoAl₂O₄|🔷
+nh3+hno3=nh4no3|Nitrato de amônio|NH₄NO₃|🌾|NH₃ + HNO₃ → NH₄NO₃
+hcl+nahco3=sal||||HCl + NaHCO₃ → NaCl + CO₂ + H₂O
+caco3+hcl=cacl2||||CaCO₃ + 2HCl → CaCl₂ + CO₂ + H₂O
+etanol+acetico=acetatoetila|Acetato de etila|CH₃COOC₂H₅|🍓|C₂H₅OH + CH₃COOH → CH₃COOC₂H₅ + H₂O`;
 
 // =========================================================================
 // BANCO DE DADOS & FUNÇÕES QUÍMICAS
@@ -915,51 +1257,233 @@ const SUBS = [];
 
 const chave = (a, b) => [a, b].sort().join('+');
 
-function deduzirCategoria(id, sub, el) {
+const METAIS_SIMBOLOS = new Set([
+  'Li','Be','Na','Mg','Al','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Rb','Sr','Y','Zr',
+  'Nb','Mo','Tc','Ru','Rh','Pd','Ag','Cd','In','Sn','Cs','Ba','La','Ce','Pr','Nd','Pm','Sm','Eu','Gd','Tb',
+  'Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re','Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','Fr','Ra'
+]);
+
+function deduzirCategoria(id, sub, el, nome = '', catExplicita = '') {
+  if (catExplicita && ['elementos','ligas','acidos','sais','organicos'].includes(catExplicita.toLowerCase())) {
+    return catExplicita.toLowerCase();
+  }
   if (el) return 'elementos';
-  if (sub.includes('–')) return 'ligas';
-  const subLower = sub.toLowerCase();
-  if (id.startsWith('h2so') || id.startsWith('hno') || id.startsWith('hcl') || id.startsWith('hf') || id.startsWith('hbr') || id.startsWith('hi') || id.startsWith('h3po') || id.startsWith('h2co') || id.startsWith('h3bo') || id.startsWith('h2wo') || id === 'acetico') return 'acidos';
-  if (/oh\d*$/.test(id)) return 'acidos';
-  if (id.startsWith('c2h') || id.startsWith('c6h') || id === 'ch4' || id === 'metanol' || id === 'etanol' || id === 'hcho' || id === 'ureia' || id === 'dmhg' || id.startsWith('acetato')) return 'organicos';
+  
+  const idL = (id || '').toLowerCase();
+  const subL = (sub || '').trim();
+  const nomeL = (nome || '').toLowerCase();
+  
+  // 1. Metais e Ligas metálicas
+  if (subL.includes('–') || subL.includes('-') || subL.includes('/')) return 'ligas';
+  if (METAIS_SIMBOLOS.has(subL) || METAIS_SIMBOLOS.has(id)) return 'ligas';
+  if (nomeL.includes('metal') || nomeL.includes('liga') || nomeL.includes('aço') || nomeL.includes('aco') ||
+      nomeL.includes('bronze') || nomeL.includes('latão') || nomeL.includes('latao') || nomeL.includes('amálgama') ||
+      nomeL.includes('amalgama') || nomeL.includes('inox') || nomeL.includes('invar') || nomeL.includes('nitinol') ||
+      nomeL.includes('solda') || nomeL.includes('ouro') || nomeL.includes('prata') || nomeL.includes('duralum') ||
+      nomeL.includes('electrum') || nomeL.includes('nicromo') || nomeL.includes('magnálio') || nomeL.includes('magnalio')) {
+    return 'ligas';
+  }
+  if (idL.includes('amalgama') || idL.includes('ouro') || idL.includes('bronze') || idL.includes('latao') ||
+      idL.includes('inox') || idL.includes('invar') || idL.includes('nitinol') || idL.includes('solda') ||
+      idL.includes('duralumin') || idL.includes('electrum') || idL.includes('nicromo') || idL.includes('aco') ||
+      idL === 'ptir' || idL === 'alsc' || idL === 'cube' || idL === 'nak' || idL === 'ptrh' || idL === 'nbti' ||
+      idL === 'ligafusivel' || idL === 'cuproniquel') {
+    return 'ligas';
+  }
+  
+  // 2. Ácidos e Bases
+  if (idL.startsWith('h2so') || idL.startsWith('hno') || idL.startsWith('hcl') || idL.startsWith('hf') ||
+      idL.startsWith('hbr') || idL.startsWith('hi') || idL.startsWith('h3po') || idL.startsWith('h2co') ||
+      idL.startsWith('h3bo') || idL.startsWith('h2wo') || idL === 'acetico' || nomeL.includes('ácido') || nomeL.includes('acido')) {
+    return 'acidos';
+  }
+  if (idL.endsWith('oh') || idL.includes('oh2') || subL.includes('(OH)') || subL.endsWith('OH') || nomeL.includes('hidróxido') || nomeL.includes('hidroxido') || nomeL.includes('soda cáustica')) {
+    return 'acidos';
+  }
+  
+  // 3. Orgânicos
+  if (idL.startsWith('c2h') || idL.startsWith('c6h') || idL === 'ch4' || idL === 'metanol' || idL === 'etanol' ||
+      idL === 'hcho' || idL === 'ureia' || idL === 'dmhg' || idL.startsWith('acetato') || nomeL.includes('metano') ||
+      nomeL.includes('etanol') || nomeL.includes('benzeno') || nomeL.includes('formaldeído') || nomeL.includes('ureia')) {
+    return 'organicos';
+  }
+  
+  // 4. Padrão: Sais e Óxidos
   return 'sais';
 }
 
-elementosAtivos.forEach(item => {
-  const sy = item.symbol;
-  DB[sy] = { id: item.id || sy, s: sy, n: item.name, num: Number(item.number), sub: 'nº ' + item.number, el: 1, cat: 'elementos' };
+ELEMENTOS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+  const [num, sy, nm] = l.split(' ');
+  DB[sy] = { id: sy, s: sy, n: nm, num: +num, sub: 'nº ' + num, el: 1, cat: 'elementos' };
   ELS.push(sy);
 });
 
-const simbolosDisponiveis = new Set(elementosAtivos.map(item => item.symbol));
-const pendentes = [...receitasDefinidas];
-const receitasAtivas = [];
-let adicionouReceita = true;
-while (adicionouReceita) {
-  adicionouReceita = false;
-  for (let index = 0; index < pendentes.length;) {
-    const recipe = pendentes[index];
-    const produtoElementarRemovido = /^[A-Z][a-z]?$/.test(recipe.productId) && !simbolosDisponiveis.has(recipe.productId);
-    if (simbolosDisponiveis.has(recipe.a) && simbolosDisponiveis.has(recipe.b) && !produtoElementarRemovido) {
-      receitasAtivas.push(recipe);
-      simbolosDisponiveis.add(recipe.productId);
-      pendentes.splice(index, 1);
-      adicionouReceita = true;
-    } else index += 1;
-  }
-}
-
-receitasAtivas.forEach(recipe => {
-  const { a, b, productId: id, name: nome, formula: f, icon: em, equation: eq } = recipe;
+RECEITAS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+  const [ing, res] = l.split('=');
+  const [id, nome, f, em, eq] = res.split('|');
+  const [a, b] = ing.split('+');
   const k = chave(a, b);
   if (nome && !DB[id]) {
-    DB[id] = { id, s: em, n: nome, sub: f, cat: deduzirCategoria(id, f, false) };
+    DB[id] = { id, s: em, n: nome, sub: f, cat: deduzirCategoria(id, f, false, nome) };
     SUBS.push(id);
   }
   REC[k] = id;
   ORD[k] = [a, b];
   if (eq) EQ[k] = eq;
 });
+
+// Catálogos do painel administrativo usam receitas agrupadas por classe.
+const CHAVE_CATALOGO = 'qf.catalogo.v2';
+const CLASSES_CATALOGO = new Map();
+const CLASSES_PRODUTO = new Map();
+let catalogoAtivo = { version: 2, elements: [], recipes: { class: {} } };
+const idCatalogoValido = id => {
+  const valor = String(id || '');
+  return /^[A-Za-z0-9_-]{1,60}$/.test(valor) && !['__proto__', 'prototype', 'constructor', 'tostring', 'valueof'].includes(valor.toLowerCase());
+};
+const escaparHtml = valor => String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+function normalizarClasseCatalogo(valor) {
+  return String(valor || '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
+function nomeClasseCatalogo(id) {
+  const nomes = { acido: 'Ácidos', metais: 'Metais', outros: 'Outros' };
+  if (nomes[id]) return nomes[id];
+  return id.split(/[-_]+/).filter(Boolean).map(p => p.charAt(0).toLocaleUpperCase('pt-BR') + p.slice(1)).join(' ');
+}
+
+function normalizarCatalogo(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error('o arquivo precisa conter um objeto JSON.');
+  if (payload.elements != null && !Array.isArray(payload.elements)) throw new Error('"elements" precisa ser uma lista.');
+
+  const elements = (payload.elements || []).map((item, index) => {
+    if (!item || typeof item !== 'object') throw new Error(`elemento ${index + 1} inválido.`);
+    const id = String(item.id || item.symbol || '').trim();
+    const symbol = String(item.symbol || id).trim();
+    const name = String(item.name || symbol).trim();
+    const number = Number(item.number);
+    if (!idCatalogoValido(id) || !symbol || !name || name.length > 120 || symbol.length > 16) throw new Error(`elemento ${index + 1} sem ID, símbolo ou nome válido.`);
+    return { id, symbol, name, number: Number.isFinite(number) && number > 0 ? number : null };
+  });
+
+  const grupos = payload.recipes?.class;
+  const receitasNormalizadas = {};
+  if (grupos && typeof grupos === 'object' && !Array.isArray(grupos)) {
+    for (const [nomeClasse, itens] of Object.entries(grupos)) {
+      const classId = normalizarClasseCatalogo(nomeClasse);
+      if (!classId || !idCatalogoValido(classId) || !Array.isArray(itens)) throw new Error(`grupo de classe inválido: ${nomeClasse}.`);
+      receitasNormalizadas[classId] ||= [];
+      for (const item of itens) receitasNormalizadas[classId].push(item);
+    }
+  } else if (Array.isArray(payload.recipes)) {
+    // Compatibilidade com arquivos antigos que guardavam as receitas em uma lista.
+    for (const item of payload.recipes) {
+      const classId = normalizarClasseCatalogo(item?.class || item?.category || item?.cat || 'outros');
+      if (!classId || !idCatalogoValido(classId)) throw new Error('classe inválida em uma receita antiga.');
+      receitasNormalizadas[classId] ||= [];
+      receitasNormalizadas[classId].push(item);
+    }
+  } else {
+    throw new Error('não encontrei "recipes.class" no formato novo nem uma lista antiga de receitas.');
+  }
+
+  const recipes = { class: {} };
+  let total = 0;
+  for (const [classId, itens] of Object.entries(receitasNormalizadas)) {
+    recipes.class[classId] = itens.map((item, index) => {
+      if (!item || typeof item !== 'object') throw new Error(`receita inválida na classe ${classId}.`);
+      const a = String(item.a || '').trim();
+      const b = String(item.b || '').trim();
+      const productId = String(item.productId || item.id || '').trim();
+      const name = String(item.name || item.nome || '').trim();
+      const formula = String(item.formula || item.sub || '').trim();
+      const icon = String(item.icon || item.symbol || item.s || '🧪').trim();
+      const equation = String(item.equation || item.equacao || '').trim();
+      if (![a, b, productId].every(idCatalogoValido)) throw new Error(`IDs inválidos na receita ${index + 1} da classe ${classId}.`);
+      if (!name || name.length > 140 || !formula || formula.length > 100 || icon.length > 16 || equation.length > 240) throw new Error(`nome, fórmula ou equação inválida na receita ${index + 1} da classe ${classId}.`);
+      return { uid: String(item.uid || ''), a, b, productId, name, formula, icon, equation };
+    });
+    total += recipes.class[classId].length;
+  }
+  if (!total) throw new Error('o catálogo não contém receitas.');
+  return { version: 2, elements, recipes };
+}
+
+function mesclarCatalogos(base, novo) {
+  const elements = new Map();
+  for (const item of [...(base?.elements || []), ...novo.elements]) elements.set(item.id, item);
+  const groups = {};
+  for (const source of [base?.recipes?.class || {}, novo.recipes.class]) {
+    for (const [classId, itens] of Object.entries(source)) {
+      groups[classId] ||= new Map();
+      for (const item of itens) groups[classId].set(chave(item.a, item.b), item);
+    }
+  }
+  return {
+    version: 2,
+    elements: [...elements.values()],
+    recipes: { class: Object.fromEntries(Object.entries(groups).map(([id, itens]) => [id, [...itens.values()]])) }
+  };
+}
+
+function instalarCatalogo(catalogo) {
+  const todasReceitas = Object.entries(catalogo.recipes.class).flatMap(([classId, itens]) => itens.map(item => ({ classId, ...item })));
+  const idsElementos = new Set(catalogo.elements.map(item => item.id));
+  const idsDisponiveis = new Set([...Object.keys(DB), ...idsElementos, ...todasReceitas.map(item => item.productId)]);
+  for (const item of todasReceitas) {
+    if (!idsDisponiveis.has(item.a) || !idsDisponiveis.has(item.b)) {
+      const ausente = !idsDisponiveis.has(item.a) ? item.a : item.b;
+      throw new Error(`o reagente "${ausente}" não está em elements nem aparece como produto de outra receita.`);
+    }
+  }
+
+  for (const item of catalogo.elements) {
+    if (DB[item.id]) continue;
+    DB[item.id] = { id: item.id, s: item.symbol, n: item.name, num: item.number, sub: item.number ? 'nº ' + item.number : item.symbol, el: 1, cat: 'elementos' };
+    ELS.push(item.id);
+  }
+  ELS.sort((a, b) => (DB[a].num || 0) - (DB[b].num || 0));
+
+  for (const item of todasReceitas) {
+    const { classId, a, b, productId, name, formula, icon, equation } = item;
+    if (!DB[productId]?.el) {
+      DB[productId] = { id: productId, s: icon, n: name, sub: formula, el: 0, cat: classId };
+      if (!SUBS.includes(productId)) SUBS.push(productId);
+    }
+    if (!CLASSES_PRODUTO.has(productId)) CLASSES_PRODUTO.set(productId, new Set());
+    CLASSES_PRODUTO.get(productId).add(classId);
+    const k = chave(a, b);
+    REC[k] = productId;
+    ORD[k] = [a, b];
+    if (equation) EQ[k] = equation;
+    else delete EQ[k];
+    CLASSES_CATALOGO.set(classId, true);
+  }
+}
+
+function aplicarCatalogo(payload, salvar = true) {
+  const novo = normalizarCatalogo(payload);
+  const combinado = mesclarCatalogos(catalogoAtivo, novo);
+  instalarCatalogo(combinado);
+  catalogoAtivo = combinado;
+  if (salvar) ls(CHAVE_CATALOGO, JSON.stringify(catalogoAtivo));
+  return Object.values(novo.recipes.class).reduce((soma, itens) => soma + itens.length, 0);
+}
+
+try {
+  const salvo = ls(CHAVE_CATALOGO);
+  if (salvo) {
+    catalogoAtivo = normalizarCatalogo(JSON.parse(salvo));
+    instalarCatalogo(catalogoAtivo);
+  }
+} catch (e) {
+  console.warn('Não foi possível restaurar o catálogo salvo:', e);
+  catalogoAtivo = { version: 2, elements: [], recipes: { class: {} } };
+}
 
 const forma = i => DB[i].el ? DB[i].s : DB[i].sub;
 
@@ -1008,11 +1532,6 @@ let found = [];
 try {
   found = JSON.parse(ls('qf.found') || '[]').filter(i => DB[i] && !DB[i].el);
 } catch (e) {}
-
-// Liberação temporária do Modo Estudo: nunca é gravada no armazenamento.
-let modoEstudo = false;
-const formulaConcluida = id => modoEstudo || found.includes(id);
-const idsConcluidos = () => modoEstudo ? SUBS : found;
 
 let historico = [];
 
@@ -1186,37 +1705,41 @@ function atualizarPainel(itemNovoId) {
   const matchesFiltro = d => {
     if (filtroAtivo === 'todos') return true;
     if (filtroAtivo === 'elementos') return !!d.el;
-    if (filtroAtivo === 'descobertas') return !d.el && formulaConcluida(d.id);
+    if (filtroAtivo === 'descobertas') return !d.el && found.includes(d.id);
     if (filtroAtivo === 'acidos') return d.cat === 'acidos';
     if (filtroAtivo === 'sais') return d.cat === 'sais';
     if (filtroAtivo === 'ligas') return d.cat === 'ligas';
-    if (filtroAtivo === 'organicos') return d.cat === 'organicos';
-    return true;
+    return d.cat === filtroAtivo || !!CLASSES_PRODUTO.get(d.id)?.has(filtroAtivo);
   };
   
   const linhaHtml = d => {
     const isNovo = d.id === itemNovoId ? ' new' : '';
-    const tipoBadge = d.el ? `Nº ${d.num}` : (d.cat ? d.cat.toUpperCase() : 'COMPOSTO');
-    return `<button class="row${isNovo}" data-id="${d.id}" role="listitem">
-      <span class="s">${d.s}</span>
+    let tipoBadge = 'COMPOSTO';
+    if (d.el) tipoBadge = `Nº ${d.num}`;
+    else if (d.cat === 'ligas') tipoBadge = 'METAL / LIGA';
+    else if (d.cat === 'acidos') tipoBadge = 'ÁCIDO / BASE';
+    else if (d.cat === 'sais') tipoBadge = 'SAL / ÓXIDO';
+    else if (d.cat === 'organicos') tipoBadge = 'ORGÂNICO';
+    else if (d.cat) tipoBadge = d.cat.toUpperCase();
+    return `<button class="row${isNovo}" data-id="${escaparHtml(d.id)}" role="listitem">
+      <span class="s">${escaparHtml(d.s)}</span>
       <span class="det">
-        <b>${d.n}</b>
-        <small>${d.sub}</small>
+        <b>${escaparHtml(d.n)}</b>
+        <small>${escaparHtml(d.sub)}</small>
       </span>
       <span class="tag-tipo">${tipoBadge}</span>
     </button>`;
   };
   
   const elementosFiltrados = ELS.map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
-  const descobertasFiltradas = idsConcluidos().map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
+  const descobertasFiltradas = found.map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
   
   let html = '';
   if (elementosFiltrados.length) {
     html += '<div class="sep">Elementos Básicos</div>' + elementosFiltrados.map(linhaHtml).join('');
   }
   if (descobertasFiltradas.length) {
-    const tituloDescobertas = modoEstudo ? 'Fórmulas liberadas (temporário)' : 'Substâncias Descobertas';
-    html += `<div class="sep">${tituloDescobertas}</div>` + descobertasFiltradas.map(linhaHtml).join('');
+    html += '<div class="sep">Substâncias Descobertas</div>' + descobertasFiltradas.map(linhaHtml).join('');
   }
   if (!html) {
     html = '<div class="sep" style="text-align:center; padding:24px 8px">Nenhum elemento encontrado.</div>';
@@ -1225,9 +1748,8 @@ function atualizarPainel(itemNovoId) {
   $('#lista').innerHTML = html;
   
   const total = SUBS.length;
-  const descobertos = modoEstudo ? total : found.length;
-  const perc = total ? Math.round((descobertos / total) * 100) : 0;
-  $('#prog-label').textContent = modoEstudo ? 'Modo estudo' : 'Descobertas';
+  const descobertos = found.length;
+  const perc = Math.round((descobertos / total) * 100);
   $('#prog-txt').textContent = `${descobertos} / ${total} (${perc}%)`;
   $('#prog-fill').style.width = `${perc}%`;
   
@@ -1237,7 +1759,6 @@ function atualizarPainel(itemNovoId) {
   else if (perc >= 50) rank = 'Mestre Químico 🔬';
   else if (perc >= 25) rank = 'Pesquisador 🧪';
   else if (perc >= 10) rank = 'Estudante 📚';
-  if (modoEstudo) rank = 'Modo Estudo 🎓';
   $('#rank-txt').textContent = rank;
   
   if (itemNovoId) {
@@ -1245,14 +1766,67 @@ function atualizarPainel(itemNovoId) {
   }
 }
 
-$$('#filtros .chip').forEach(btn => {
-  btn.onclick = () => {
-    $$('#filtros .chip').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    filtroAtivo = btn.dataset.f;
+// =========================================================================
+// FILTROS DE CATEGORIA
+// =========================================================================
+function renderizarFiltros() {
+  const container = $('#filtros');
+  if (!container) return;
+  
+  const padrao = [
+    { id: 'todos', n: 'Todos', s: '' },
+    { id: 'elementos', n: 'Elementos', s: '⚛️' },
+    { id: 'descobertas', n: 'Descobertas', s: '✨' },
+    { id: 'acidos', n: 'Ácidos & Bases', s: '⚗️' },
+    { id: 'sais', n: 'Sais & Óxidos', s: '🧂' },
+    { id: 'ligas', n: 'Metais & Ligas', s: '🔩' },
+    { id: 'organicos', n: 'Orgânicos', s: '🍃' }
+  ];
+
+  const idsFixos = new Set(padrao.map(c => c.id));
+  const iconesClasse = { acido: '⚗️', metais: '🔩', outros: '🧪' };
+  const dinamicos = [...CLASSES_CATALOGO.keys()]
+    .filter(id => !idsFixos.has(id))
+    .sort((a, b) => nomeClasseCatalogo(a).localeCompare(nomeClasseCatalogo(b), 'pt-BR'))
+    .map(id => ({ id, n: nomeClasseCatalogo(id), s: iconesClasse[id] || '🏷️' }));
+
+  container.innerHTML = [...padrao, ...dinamicos].map(c => {
+    const isAtivo = filtroAtivo === c.id ? ' on' : '';
+    const label = c.s ? `${c.s} ${c.n}` : c.n;
+    return `<button class="chip${isAtivo}" data-f="${escaparHtml(c.id)}">${escaparHtml(label)}</button>`;
+  }).join('');
+
+  container.querySelectorAll('.chip').forEach(btn => {
+    btn.onclick = () => {
+      container.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      filtroAtivo = btn.dataset.f;
+      atualizarPainel();
+    };
+  });
+}
+
+renderizarFiltros();
+
+$('#catalogo-btn').onclick = () => $('#catalogo-input').click();
+$('#catalogo-input').onchange = async e => {
+  const arquivo = e.target.files?.[0];
+  if (!arquivo) return;
+  try {
+    const dados = JSON.parse(await arquivo.text());
+    const quantidade = aplicarCatalogo(dados);
+    found = found.filter(id => DB[id] && !DB[id].el);
+    ls('qf.found', JSON.stringify(found));
+    renderizarFiltros();
     atualizarPainel();
-  };
-});
+    if ($('#modal-receitas').open) atualizarModalReceitas();
+    mostrarAviso(`Catálogo carregado: ${quantidade} receitas e classes atualizadas.`);
+  } catch (erro) {
+    mostrarAviso(`Não foi possível importar: ${erro.message || 'arquivo JSON inválido.'}`);
+  } finally {
+    e.target.value = '';
+  }
+};
 
 $('#q').oninput = () => atualizarPainel();
 $('#limpar-busca').onclick = () => {
@@ -1265,6 +1839,82 @@ $('#limpar-busca').onclick = () => {
 // INTERAÇÃO NA MESA (MOTOR ROBUSTO DE ARRASTO E FUSÃO)
 // =========================================================================
 const mesa = $('#mesa');
+const painel = $('#painel');
+const divisorPainel = $('#divisor-painel');
+const painelEmpilhado = matchMedia('(max-width: 768px)');
+const limitar = (valor, minimo, maximo) => Math.min(Math.max(valor, minimo), Math.max(minimo, maximo));
+
+function atualizarSeparadorPainel() {
+  const empilhado = painelEmpilhado.matches;
+  divisorPainel.setAttribute('aria-orientation', empilhado ? 'horizontal' : 'vertical');
+  const salvo = Number(ls(empilhado ? 'qf.painel.altura' : 'qf.painel.largura'));
+  const minimo = empilhado ? 160 : 220;
+  const maximo = empilhado ? Math.max(160, window.innerHeight - 160) : Math.max(220, Math.min(520, window.innerWidth - 280));
+  painel.style.flexBasis = salvo > 0 ? `${limitar(salvo, minimo, maximo)}px` : '';
+  atualizarValorSeparadorPainel();
+}
+
+function atualizarValorSeparadorPainel() {
+  const empilhado = painelEmpilhado.matches;
+  const tamanho = empilhado ? painel.getBoundingClientRect().height : painel.getBoundingClientRect().width;
+  const maximo = empilhado ? Math.max(180, window.innerHeight - 160) : Math.max(220, Math.min(520, window.innerWidth - 280));
+  divisorPainel.setAttribute('aria-valuemin', empilhado ? '160' : '220');
+  divisorPainel.setAttribute('aria-valuemax', String(maximo));
+  divisorPainel.setAttribute('aria-valuenow', String(Math.round(tamanho)));
+}
+
+atualizarSeparadorPainel();
+painelEmpilhado.addEventListener('change', atualizarSeparadorPainel);
+
+divisorPainel.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const empilhado = painelEmpilhado.matches;
+  divisorPainel.classList.add('arrastando');
+  divisorPainel.setPointerCapture(e.pointerId);
+
+  const redimensionar = ev => {
+    if (empilhado) {
+      const altura = limitar(window.innerHeight - ev.clientY, 160, window.innerHeight - 160);
+      painel.style.flexBasis = `${altura}px`;
+    } else {
+      const largura = limitar(window.innerWidth - ev.clientX, 220, Math.min(520, window.innerWidth - 280));
+      painel.style.flexBasis = `${largura}px`;
+    }
+    atualizarValorSeparadorPainel();
+  };
+
+  const finalizar = () => {
+    divisorPainel.classList.remove('arrastando');
+    const chaveTamanho = empilhado ? 'qf.painel.altura' : 'qf.painel.largura';
+    const tamanho = empilhado ? painel.getBoundingClientRect().height : painel.getBoundingClientRect().width;
+    ls(chaveTamanho, String(Math.round(tamanho)));
+    divisorPainel.removeEventListener('pointermove', redimensionar);
+    divisorPainel.removeEventListener('pointerup', finalizar);
+    divisorPainel.removeEventListener('pointercancel', finalizar);
+  };
+
+  divisorPainel.addEventListener('pointermove', redimensionar);
+  divisorPainel.addEventListener('pointerup', finalizar);
+  divisorPainel.addEventListener('pointercancel', finalizar);
+});
+
+divisorPainel.addEventListener('keydown', e => {
+  const empilhado = painelEmpilhado.matches;
+  const cresce = empilhado ? e.key === 'ArrowUp' : e.key === 'ArrowLeft';
+  const diminui = empilhado ? e.key === 'ArrowDown' : e.key === 'ArrowRight';
+  if (!cresce && !diminui) return;
+  e.preventDefault();
+  const delta = cresce ? 20 : -20;
+  const atual = empilhado ? painel.getBoundingClientRect().height : painel.getBoundingClientRect().width;
+  const minimo = empilhado ? 160 : 220;
+  const maximo = empilhado ? window.innerHeight - 160 : Math.min(520, window.innerWidth - 280);
+  const tamanho = limitar(atual + delta, minimo, maximo);
+  painel.style.flexBasis = `${tamanho}px`;
+  ls(empilhado ? 'qf.painel.altura' : 'qf.painel.largura', String(Math.round(tamanho)));
+  atualizarValorSeparadorPainel();
+});
+
 let zIndexAtual = 200;
 let avisoTimeout = null, eqTimeout = null;
 let ultimoCliqueTempo = 0, ultimoItemClicado = null;
@@ -1287,9 +1937,9 @@ function mostrarEquacao(eq, nova, d) {
   el.innerHTML = `
     <div class="topo-eqn">
       ${nova ? '✨ <b>Nova Descoberta!</b>' : 'Reação Química'}
-      <span>— ${d.s} ${d.n}</span>
+      <span>— ${escaparHtml(d.s)} ${escaparHtml(d.n)}</span>
     </div>
-    <span class="formula-texto">${eq}</span>
+    <span class="formula-texto">${escaparHtml(eq)}</span>
   `;
   clearTimeout(eqTimeout);
   eqTimeout = setTimeout(() => el.className = '', 6500);
@@ -1302,12 +1952,11 @@ function criarItem(id, x, y, anim = '') {
   const el = document.createElement('div');
   el.className = 'item ' + anim;
   el.dataset.id = id;
-  el.classList.add(d.el ? 'elemento' : 'composto');
-  el.title = d.el ? `Nº ${d.num} · ${d.s} · ${d.n}` : `${d.n} · ${d.sub}`;
-  el.setAttribute('aria-label', el.title);
   el.innerHTML = `
     <button class="del-btn" title="Remover item">✕</button>
-    ${d.el ? `<small class="num">${d.num}</small><span class="s">${d.s}</span>` : `<span class="s">${d.s}</span><b>${d.n}</b><small>${d.sub}</small>`}
+    <span class="s">${escaparHtml(d.s)}</span>
+    <b>${escaparHtml(d.n)}</b>
+    <small>${escaparHtml(d.sub)}</small>
   `;
   document.body.append(el);
   
@@ -1471,7 +2120,7 @@ function executarFusao(a, b) {
   const y = (ra.top + ra.height / 2 + rb.top + rb.height / 2) / 2;
   
   const d = DB[idProduto];
-  const nova = !formulaConcluida(idProduto);
+  const nova = !d.el && !found.includes(idProduto);
   const eq = equacao(idA, idB, idProduto);
   
   // Coordenadas relativas ao canvas
@@ -1568,12 +2217,12 @@ $('#organizar').onclick = () => {
 
 // Botão Dica
 $('#dica-btn').onclick = () => {
-  const conhecidos = [...ELS, ...idsConcluidos()];
+  const conhecidos = [...ELS, ...found];
   const candidatos = [];
   
   for (const k of Object.keys(REC)) {
     const idProd = REC[k];
-    if (formulaConcluida(idProd)) continue;
+    if (found.includes(idProd)) continue;
     const [a, b] = ORD[k];
     if (conhecidos.includes(a) && conhecidos.includes(b)) {
       candidatos.push({ a, b, idProd });
@@ -1699,22 +2348,23 @@ function renderizarQuadro() {
 // =========================================================================
 // ENCICLOPÉDIA & LIVRO DE RECEITAS (MODAL)
 // =========================================================================
+let modoEstudo = false;
+
 function atualizarModalReceitas() {
-  const concluidas = modoEstudo ? SUBS.length : found.length;
-  $('#cont-dc').textContent = `${concluidas}/${SUBS.length}`;
+  $('#cont-dc').textContent = `${found.length}/${SUBS.length}`;
   $('#cont-cr').textContent = `${Object.keys(REC).length}`;
   
   const qModal = norm($('#q-modal').value.trim());
   
   $('#grid-dc').innerHTML = SUBS.map(id => {
     const d = DB[id];
-    const ok = formulaConcluida(id);
+    const ok = DB[id].el || found.includes(id) || modoEstudo;
     if (qModal && !norm(d.n).includes(qModal) && !norm(d.sub).includes(qModal)) return '';
     return `
       <div class="card-dc ${ok ? 'ok' : 'bl'}">
-        <div class="s">${ok ? d.s : '🔒'}</div>
-        <b>${ok ? d.n : '???'}</b>
-        <small>${ok ? d.sub : 'Bloqueado'}</small>
+        <div class="s">${ok ? escaparHtml(d.s) : '🔒'}</div>
+        <b>${ok ? escaparHtml(d.n) : '???'}</b>
+        <small>${ok ? escaparHtml(d.sub) : 'Bloqueado'}</small>
       </div>
     `;
   }).join('');
@@ -1722,16 +2372,16 @@ function atualizarModalReceitas() {
   $('#lista-cr').innerHTML = Object.keys(REC).map(k => {
     const id = REC[k];
     const [a, b] = ORD[k];
-    const ok = formulaConcluida(id);
+    const ok = DB[id].el || found.includes(id) || modoEstudo;
     const nomeEq = equacao(a, b, id);
     if (qModal && !norm(DB[id].n).includes(qModal) && !norm(DB[a].n).includes(qModal) && !norm(DB[b].n).includes(qModal) && !norm(nomeEq).includes(qModal)) return '';
     
     return `
       <div class="card-cr ${ok ? 'ok' : 'bl'}">
         <div>
-          <span>${DB[a].s} ${DB[a].n}</span> + <span>${DB[b].s} ${DB[b].n}</span> → <b>${ok ? DB[id].s + ' ' + DB[id].n : '🔒 Desconhecido'}</b>
+          <span>${escaparHtml(DB[a].s)} ${escaparHtml(DB[a].n)}</span> + <span>${escaparHtml(DB[b].s)} ${escaparHtml(DB[b].n)}</span> → <b>${ok ? escaparHtml(DB[id].s + ' ' + DB[id].n) : '🔒 Desconhecido'}</b>
         </div>
-        <small>${ok ? nomeEq : 'Descubra combinando os ingredientes na bancada'}</small>
+        <small>${ok ? escaparHtml(nomeEq) : 'Descubra combinando os ingredientes na bancada'}</small>
       </div>
     `;
   }).join('');
@@ -1759,9 +2409,8 @@ $('#q-modal').oninput = () => atualizarModalReceitas();
 
 $('#modo-professor-btn').onclick = () => {
   modoEstudo = !modoEstudo;
-  $('#modo-professor-btn').textContent = modoEstudo ? '✅ Concluídas · Desativar' : '🎓 Modo Estudo';
+  $('#modo-professor-btn').textContent = modoEstudo ? '🔒 Ocultar Não Descobertas' : '🎓 Modo Estudo';
   $('#modo-professor-btn').classList.toggle('destaque', modoEstudo);
-  atualizarPainel();
   atualizarModalReceitas();
 };
 
@@ -1808,10 +2457,10 @@ $('#hist-btn').onclick = () => {
     container.innerHTML = historico.map(h => `
       <div class="card-cr ${h.nova ? 'ok' : ''}" style="font-size:13px">
         <div style="display:flex; justify-content:space-between">
-          <b>${h.produto}</b>
-          <small>${h.hora} ${h.nova ? '✨ Nova' : ''}</small>
+          <b>${escaparHtml(h.produto)}</b>
+          <small>${escaparHtml(h.hora)} ${h.nova ? '✨ Nova' : ''}</small>
         </div>
-        <div>${h.equacao}</div>
+        <div>${escaparHtml(h.equacao)}</div>
       </div>
     `).join('');
   }
@@ -1848,6 +2497,7 @@ function aplicarTema(t) {
   root.dataset.theme = t;
   ls('qf.tema', t);
   const isDark = t === 'dark';
+  $('#tema-btn').textContent = isDark ? '☀️ Claro' : '🌙 Escuro';
   $('#cfg-tema-btn').textContent = isDark ? '☀️ Modo Claro' : '🌙 Modo Escuro';
   if (reducaoMovimento && mols.length) renderizarQuadro();
 }
@@ -1856,6 +2506,7 @@ function alternarTema() {
   aplicarTema(root.dataset.theme === 'dark' ? 'light' : 'dark');
 }
 
+$('#tema-btn').onclick = alternarTema;
 $('#cfg-tema-btn').onclick = alternarTema;
 
 // Inicialização Geral
@@ -1868,7 +2519,18 @@ ajustarTamanhoCanvas();
 
 mols = Array.from({ length: 18 }, criarMolecula);
 renderizarQuadro();
-})();
+
+// Popup do Log de Atualização
+const modalChangelog = $('#modal-changelog');
+const fecharClBtn = $('#fechar-changelog-btn');
+if (fecharClBtn && modalChangelog) {
+  fecharClBtn.onclick = () => modalChangelog.close();
+}
+if (modalChangelog) {
+  setTimeout(() => {
+    try { modalChangelog.showModal(); } catch(e){}
+  }, 250);
+}
 </script>
 </body>
 </html>
