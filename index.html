@@ -1695,6 +1695,8 @@ let filtroAtivo = 'todos';
 function atualizarPainel(itemNovoId) {
   const q = norm($('#q').value.trim());
   $('#limpar-busca').style.display = q ? 'block' : 'none';
+  const idsDescobertosVisiveis = modoEstudo ? SUBS : found;
+  const descobertasVisiveis = new Set(idsDescobertosVisiveis);
   
   const matchesBusca = d => {
     if (!q) return true;
@@ -1711,7 +1713,7 @@ function atualizarPainel(itemNovoId) {
   const matchesFiltro = d => {
     if (filtroAtivo === 'todos') return true;
     if (filtroAtivo === 'elementos') return !!d.el;
-    if (filtroAtivo === 'descobertas') return !d.el && found.includes(d.id);
+    if (filtroAtivo === 'descobertas') return !d.el && descobertasVisiveis.has(d.id);
     if (filtroAtivo === 'acidos') return d.cat === 'acidos';
     if (filtroAtivo === 'sais') return d.cat === 'sais';
     if (filtroAtivo === 'ligas') return d.cat === 'ligas';
@@ -1738,7 +1740,7 @@ function atualizarPainel(itemNovoId) {
   };
   
   const elementosFiltrados = ELS.map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
-  const descobertasFiltradas = found.map(i => DB[i]).filter(d => matchesBusca(d) && matchesFiltro(d));
+  const descobertasFiltradas = idsDescobertosVisiveis.map(i => DB[i]).filter(d => d && matchesBusca(d) && matchesFiltro(d));
   
   let html = '';
   if (elementosFiltrados.length) {
@@ -1754,7 +1756,7 @@ function atualizarPainel(itemNovoId) {
   $('#lista').innerHTML = html;
   
   const total = SUBS.length;
-  const descobertos = found.length;
+  const descobertos = modoEstudo ? total : found.length;
   const perc = Math.round((descobertos / total) * 100);
   $('#prog-txt').textContent = `${descobertos} / ${total} (${perc}%)`;
   $('#prog-fill').style.width = `${perc}%`;
@@ -2383,12 +2385,12 @@ function renderizarQuadro() {
 let modoEstudo = false;
 
 function atualizarModalReceitas() {
-  $('#cont-dc').textContent = `${found.length}/${SUBS.length}`;
+  const idsRevelados = modoEstudo ? new Set(SUBS) : new Set(found);
+  $('#cont-dc').textContent = `${idsRevelados.size}/${SUBS.length}`;
   $('#cont-cr').textContent = `${Object.keys(REC).length}`;
   
   const qModal = norm($('#q-modal').value.trim());
-  const descobertas = new Set(found);
-  const estaRevelado = id => Boolean(DB[id] && (DB[id].el || descobertas.has(id) || modoEstudo));
+  const estaRevelado = id => Boolean(DB[id] && (DB[id].el || idsRevelados.has(id)));
   
   $('#grid-dc').innerHTML = SUBS.map(id => {
     const d = DB[id];
@@ -2460,6 +2462,7 @@ function atualizarBotaoModoEstudo() {
 $('#modo-professor-btn').addEventListener('click', () => {
   modoEstudo = !modoEstudo;
   atualizarBotaoModoEstudo();
+  atualizarPainel();
   atualizarModalReceitas();
   mostrarAviso(modoEstudo ? 'modo-estudo-ativado' : 'modo-estudo-desativado');
 });
