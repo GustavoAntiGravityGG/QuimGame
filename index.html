@@ -826,8 +826,6 @@ input[type="range"] {
       <button class="bt" id="organizar" title="Alinhar elementos soltos na mesa">📐 Organizar</button>
       <button class="bt" id="dica-btn" title="Receber dica de combinação química">💡 Dica</button>
       <button class="bt" id="livro-btn" title="Abrir Livro de Descobertas e Receitas">📖 Enciclopédia</button>
-      <button class="bt" id="catalogo-btn" title="Importar catálogo de receitas em JSON" aria-label="Importar catálogo JSON">📥 Importar JSON</button>
-      <input id="catalogo-input" type="file" accept=".json,application/json" hidden>
       <button class="bt" id="cfg-btn" title="Configurações e Áudio">⚙️ Config</button>
       <button class="bt" id="tema-btn" title="Alternar tema"></button>
     </div>
@@ -887,7 +885,7 @@ input[type="range"] {
     <button class="bt on" id="aba-dc-btn">✨ Descobertas (<span id="cont-dc">0</span>)</button>
     <button class="bt" id="aba-cr-btn">📜 Livro de Receitas (<span id="cont-cr">0</span>)</button>
     <div style="flex:1"></div>
-    <button class="bt" id="modo-professor-btn" title="Revelar todas as receitas para estudo">🎓 Modo Estudo</button>
+    <button class="bt" id="modo-professor-btn" type="button" aria-pressed="false" title="Revelar temporariamente todas as receitas">🎓 Modo Estudo</button>
     <button class="bt bt-icon" id="fechar-receitas-btn">✕</button>
   </div>
   <div class="busca-modal">
@@ -1333,7 +1331,6 @@ RECEITAS_TXT.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
 });
 
 // Catálogos do painel administrativo usam receitas agrupadas por classe.
-const CHAVE_CATALOGO = 'qf.catalogo.v2';
 const CLASSES_CATALOGO = new Map();
 const CLASSES_PRODUTO = new Map();
 let catalogoAtivo = { version: 2, elements: [], recipes: { class: {} } };
@@ -1465,24 +1462,12 @@ function instalarCatalogo(catalogo) {
   }
 }
 
-function aplicarCatalogo(payload, salvar = true) {
+function aplicarCatalogo(payload) {
   const novo = normalizarCatalogo(payload);
   const combinado = mesclarCatalogos(catalogoAtivo, novo);
   instalarCatalogo(combinado);
   catalogoAtivo = combinado;
-  if (salvar) ls(CHAVE_CATALOGO, JSON.stringify(catalogoAtivo));
   return Object.values(novo.recipes.class).reduce((soma, itens) => soma + itens.length, 0);
-}
-
-try {
-  const salvo = ls(CHAVE_CATALOGO);
-  if (salvo) {
-    catalogoAtivo = normalizarCatalogo(JSON.parse(salvo));
-    instalarCatalogo(catalogoAtivo);
-  }
-} catch (e) {
-  console.warn('Não foi possível restaurar o catálogo salvo:', e);
-  catalogoAtivo = { version: 2, elements: [], recipes: { class: {} } };
 }
 
 const forma = i => DB[i].el ? DB[i].s : DB[i].sub;
@@ -1807,26 +1792,6 @@ function renderizarFiltros() {
 }
 
 renderizarFiltros();
-
-$('#catalogo-btn').onclick = () => $('#catalogo-input').click();
-$('#catalogo-input').onchange = async e => {
-  const arquivo = e.target.files?.[0];
-  if (!arquivo) return;
-  try {
-    const dados = JSON.parse(await arquivo.text());
-    const quantidade = aplicarCatalogo(dados);
-    found = found.filter(id => DB[id] && !DB[id].el);
-    ls('qf.found', JSON.stringify(found));
-    renderizarFiltros();
-    atualizarPainel();
-    if ($('#modal-receitas').open) atualizarModalReceitas();
-    mostrarAviso(`Catálogo carregado: ${quantidade} receitas e classes atualizadas.`);
-  } catch (erro) {
-    mostrarAviso(`Não foi possível importar: ${erro.message || 'arquivo JSON inválido.'}`);
-  } finally {
-    e.target.value = '';
-  }
-};
 
 $('#q').oninput = () => atualizarPainel();
 $('#limpar-busca').onclick = () => {
@@ -2407,12 +2372,51 @@ $('#aba-cr-btn').onclick = () => {
 };
 $('#q-modal').oninput = () => atualizarModalReceitas();
 
+function atualizarBotaoModoEstudo() {
+  const botao = $('#modo-professor-btn');
+  botao.textContent = modoEstudo ? '🎓 Estudo ativo' : '🎓 Modo Estudo';
+  botao.title = modoEstudo ? 'Ocultar as receitas ainda não descobertas' : 'Revelar temporariamente todas as receitas';
+  botao.setAttribute('aria-pressed', String(modoEstudo));
+  botao.classList.toggle('destaque', modoEstudo);
+}
+
 $('#modo-professor-btn').onclick = () => {
   modoEstudo = !modoEstudo;
-  $('#modo-professor-btn').textContent = modoEstudo ? '🔒 Ocultar Não Descobertas' : '🎓 Modo Estudo';
-  $('#modo-professor-btn').classList.toggle('destaque', modoEstudo);
+  atualizarBotaoModoEstudo();
   atualizarModalReceitas();
 };
+atualizarBotaoModoEstudo();
+
+async function carregarCatalogoDaRaiz() {
+  if (location.protocol === 'file:') {
+    mostrarAviso('Para carregar recipe.json, abra o jogo pelo site ou por um servidor local.');
+    return;
+  }
+  const controlador = new AbortController();
+  const timeout = setTimeout(() => controlador.abort(), 8000);
+  try {
+    const resposta = await fetch(new URL('./recipe.json', location.href), {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+      signal: controlador.signal
+    });
+    if (!resposta.ok) throw new Error(`recipe.json respondeu ${resposta.status}.`);
+    const dados = await resposta.json();
+    const quantidade = aplicarCatalogo(dados);
+    found = found.filter(id => DB[id] && !DB[id].el);
+    ls('qf.found', JSON.stringify(found));
+    renderizarFiltros();
+    atualizarPainel();
+    if ($('#modal-receitas').open) atualizarModalReceitas();
+    mostrarAviso(`recipe.json carregado: ${quantidade} receitas disponíveis.`);
+  } catch (erro) {
+    console.error('Não foi possível carregar recipe.json da raiz do jogo:', erro);
+    mostrarAviso(`Falha ao carregar recipe.json: ${erro.message || 'verifique se o arquivo está na raiz do site.'}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+carregarCatalogoDaRaiz();
 
 // =========================================================================
 // CONFIGURAÇÕES & ÁUDIO
