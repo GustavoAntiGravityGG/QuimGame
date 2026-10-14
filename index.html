@@ -188,14 +188,22 @@ h1 {
   bottom: 24px;
   transform: translate(-50%, 16px);
   opacity: 0;
-  padding: 9px 20px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--bg);
+  width: max-content;
+  min-width: min(280px, calc(100% - 32px));
+  max-width: min(460px, calc(100% - 32px));
+  padding: 11px 16px;
+  border: 1px solid var(--ln);
+  border-left: 3px solid var(--ac);
+  border-radius: 12px;
+  background: var(--pn);
+  color: var(--ink);
   box-shadow: var(--shadow-md);
   font-size: 13.5px;
   font-weight: 500;
-  white-space: nowrap;
+  line-height: 1.45;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
   pointer-events: none;
   transition: opacity .25s, transform .25s;
   z-index: var(--z-toast);
@@ -592,6 +600,16 @@ dialog h3 {
   border-bottom: 1px solid var(--ln);
   padding-bottom: 8px;
 }
+.estado-modo-estudo {
+  margin: -2px 0 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--ac);
+  border-radius: var(--radius-sm);
+  background: var(--ac-glow);
+  color: var(--ink);
+  font-size: 12.5px;
+}
+#estado-modo-estudo[hidden] { display: none !important; }
 .abas-modal .bt.on {
   border-color: var(--ac);
   background: var(--ac);
@@ -887,6 +905,9 @@ input[type="range"] {
     <div style="flex:1"></div>
     <button class="bt" id="modo-professor-btn" type="button" aria-pressed="false" title="Revelar temporariamente todas as receitas">🎓 Modo Estudo</button>
     <button class="bt bt-icon" id="fechar-receitas-btn">✕</button>
+  </div>
+  <div class="estado-modo-estudo" id="estado-modo-estudo" role="status" hidden>
+    Modo Estudo ativo: todas as substâncias e receitas estão reveladas temporariamente.
   </div>
   <div class="busca-modal">
     <input id="q-modal" type="search" placeholder="Filtrar receitas ou substâncias..." style="width:100%; padding:8px 12px; border:1px solid var(--ln); border-radius:8px; background:var(--bg)">
@@ -1884,13 +1905,59 @@ let zIndexAtual = 200;
 let avisoTimeout = null, eqTimeout = null;
 let ultimoCliqueTempo = 0, ultimoItemClicado = null;
 
+const MENSAGENS_AVISO_PADRAO = {
+  duplicado: 'Duplicado: {nome}',
+  'sem-reacao': 'Sem reação entre {a} e {b}',
+  'nova-descoberta': '✨ Nova Descoberta: {nome}!',
+  'mesa-organizada': 'Mesa organizada em grade.',
+  dica: '💡 Dica: Experimente juntar [{a}] com [{b}]!',
+  'todas-descobertas': '🎉 Você descobriu todas as reações possíveis com os elementos atuais!',
+  'bancada-limpa': 'Bancada limpa.',
+  'catalogo-indisponivel': 'Para carregar recipe.json, abra o jogo pelo site ou por um servidor local.',
+  'catalogo-carregado': 'recipe.json carregado: {quantidade} receitas disponíveis.',
+  'falha-catalogo': 'Falha ao carregar recipe.json: {erro}',
+  'historico-limpo': 'Histórico limpo.',
+  'laboratorio-reiniciado': 'Laboratório reiniciado.',
+  'modo-estudo-ativado': 'Modo Estudo ativado: todas as substâncias e receitas foram reveladas temporariamente.',
+  'modo-estudo-desativado': 'Modo Estudo desativado: estão visíveis apenas suas descobertas.'
+};
+let mensagensAviso = { ...MENSAGENS_AVISO_PADRAO };
+
+async function carregarMensagensAviso() {
+  if (location.protocol === 'file:') return;
+  const controlador = new AbortController();
+  const timeout = setTimeout(() => controlador.abort(), 2500);
+  try {
+    const resposta = await fetch(new URL('./pop-up.md', location.href), {
+      headers: { Accept: 'text/markdown, text/plain;q=0.9, */*;q=0.8' },
+      cache: 'no-store',
+      signal: controlador.signal
+    });
+    if (!resposta.ok) throw new Error(`pop-up.md respondeu ${resposta.status}.`);
+    const markdown = await resposta.text();
+    const secoes = markdown.split(/^##\s+([a-z0-9-]+)\s*$/im);
+    const carregadas = {};
+    for (let i = 1; i < secoes.length; i += 2) {
+      const chave = secoes[i].trim().toLowerCase();
+      const texto = (secoes[i + 1] || '').trim();
+      if (chave && texto) carregadas[chave] = texto;
+    }
+    mensagensAviso = { ...MENSAGENS_AVISO_PADRAO, ...carregadas };
+  } catch (erro) {
+    console.warn('Não foi possível carregar pop-up.md; usando os avisos padrão.', erro);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function atualizarDicaCentral() {
   $('#dica-centro').style.opacity = $('.item') ? '0' : '1';
 }
 
-function mostrarAviso(msg) {
+function mostrarAviso(chave, dados = {}) {
   const el = $('#aviso');
-  el.textContent = msg;
+  const modelo = mensagensAviso[chave] || MENSAGENS_AVISO_PADRAO[chave] || String(chave);
+  el.textContent = modelo.replace(/\{([a-zA-Z0-9_-]+)\}/g, (_, nome) => String(dados[nome] ?? ''));
   el.classList.add('on');
   clearTimeout(avisoTimeout);
   avisoTimeout = setTimeout(() => el.classList.remove('on'), 2200);
@@ -1975,7 +2042,7 @@ function duplicarItem(el) {
   const rect = el.getBoundingClientRect();
   const novo = criarItem(id, rect.left + rect.width / 2 + 35, rect.top + rect.height / 2 + 35, 'pop');
   sfxPop();
-  mostrarAviso(`Duplicado: ${DB[id].n}`);
+  mostrarAviso('duplicado', { nome: DB[id].n });
 }
 
 function adicionarItemNaMesa(id) {
@@ -2074,7 +2141,7 @@ function executarFusao(a, b) {
   
   if (!idProduto) {
     sfxErro();
-    mostrarAviso(`Sem reação entre ${DB[idA].n} e ${DB[idB].n}`);
+    mostrarAviso('sem-reacao', { a: DB[idA].n, b: DB[idB].n });
     a.classList.add('sh');
     setTimeout(() => a.classList.remove('sh'), 350);
     return;
@@ -2113,7 +2180,7 @@ function executarFusao(a, b) {
     found.push(idProduto);
     ls('qf.found', JSON.stringify(found));
     atualizarPainel(idProduto);
-    mostrarAviso(`✨ Nova Descoberta: ${d.n}!`);
+    mostrarAviso('nova-descoberta', { nome: d.n });
   }
 }
 
@@ -2177,7 +2244,7 @@ $('#organizar').onclick = () => {
     el.style.top = (m.top + 75 + lin * espacoY) + 'px';
   });
   sfxPop();
-  mostrarAviso('Mesa organizada em grade.');
+  mostrarAviso('mesa-organizada');
 };
 
 // Botão Dica
@@ -2196,10 +2263,10 @@ $('#dica-btn').onclick = () => {
   
   if (candidatos.length > 0) {
     const escolha = candidatos[Math.floor(Math.random() * candidatos.length)];
-    mostrarAviso(`💡 Dica: Experimente juntar [${DB[escolha.a].n}] com [${DB[escolha.b].n}]!`);
+    mostrarAviso('dica', { a: DB[escolha.a].n, b: DB[escolha.b].n });
     sfxPop();
   } else {
-    mostrarAviso('🎉 Você descobriu todas as reações possíveis com os elementos atuais!');
+    mostrarAviso('todas-descobertas');
   }
 };
 
@@ -2207,7 +2274,7 @@ $('#dica-btn').onclick = () => {
 $('#limpar').onclick = () => {
   $$('.item').forEach(x => x.remove());
   atualizarDicaCentral();
-  mostrarAviso('Bancada limpa.');
+  mostrarAviso('bancada-limpa');
   sfxPop();
 };
 
@@ -2320,10 +2387,13 @@ function atualizarModalReceitas() {
   $('#cont-cr').textContent = `${Object.keys(REC).length}`;
   
   const qModal = norm($('#q-modal').value.trim());
+  const descobertas = new Set(found);
+  const estaRevelado = id => Boolean(DB[id] && (DB[id].el || descobertas.has(id) || modoEstudo));
   
   $('#grid-dc').innerHTML = SUBS.map(id => {
     const d = DB[id];
-    const ok = DB[id].el || found.includes(id) || modoEstudo;
+    if (!d) return '';
+    const ok = estaRevelado(id);
     if (qModal && !norm(d.n).includes(qModal) && !norm(d.sub).includes(qModal)) return '';
     return `
       <div class="card-dc ${ok ? 'ok' : 'bl'}">
@@ -2336,9 +2406,13 @@ function atualizarModalReceitas() {
   
   $('#lista-cr').innerHTML = Object.keys(REC).map(k => {
     const id = REC[k];
-    const [a, b] = ORD[k];
-    const ok = DB[id].el || found.includes(id) || modoEstudo;
-    const nomeEq = equacao(a, b, id);
+    const ingredientes = ORD[k];
+    if (!DB[id] || !Array.isArray(ingredientes) || ingredientes.length !== 2 || ingredientes.some(item => !DB[item])) return '';
+    const [a, b] = ingredientes;
+    const ok = estaRevelado(id);
+    let nomeEq;
+    try { nomeEq = equacao(a, b, id); }
+    catch { nomeEq = `${forma(a)} + ${forma(b)} → ${DB[id].sub}`; }
     if (qModal && !norm(DB[id].n).includes(qModal) && !norm(DB[a].n).includes(qModal) && !norm(DB[b].n).includes(qModal) && !norm(nomeEq).includes(qModal)) return '';
     
     return `
@@ -2374,24 +2448,29 @@ $('#q-modal').oninput = () => atualizarModalReceitas();
 
 function atualizarBotaoModoEstudo() {
   const botao = $('#modo-professor-btn');
+  const estado = $('#estado-modo-estudo');
   botao.textContent = modoEstudo ? '🎓 Estudo ativo' : '🎓 Modo Estudo';
   botao.title = modoEstudo ? 'Ocultar as receitas ainda não descobertas' : 'Revelar temporariamente todas as receitas';
   botao.setAttribute('aria-pressed', String(modoEstudo));
+  botao.setAttribute('aria-label', modoEstudo ? 'Desativar Modo Estudo' : 'Ativar Modo Estudo');
   botao.classList.toggle('destaque', modoEstudo);
+  estado.hidden = !modoEstudo;
 }
 
-$('#modo-professor-btn').onclick = () => {
+$('#modo-professor-btn').addEventListener('click', () => {
   modoEstudo = !modoEstudo;
   atualizarBotaoModoEstudo();
   atualizarModalReceitas();
-};
+  mostrarAviso(modoEstudo ? 'modo-estudo-ativado' : 'modo-estudo-desativado');
+});
 atualizarBotaoModoEstudo();
 
 async function carregarCatalogoDaRaiz() {
   if (location.protocol === 'file:') {
-    mostrarAviso('Para carregar recipe.json, abra o jogo pelo site ou por um servidor local.');
+    mostrarAviso('catalogo-indisponivel');
     return;
   }
+  await carregarMensagensAviso();
   const controlador = new AbortController();
   const timeout = setTimeout(() => controlador.abort(), 8000);
   try {
@@ -2408,10 +2487,10 @@ async function carregarCatalogoDaRaiz() {
     renderizarFiltros();
     atualizarPainel();
     if ($('#modal-receitas').open) atualizarModalReceitas();
-    mostrarAviso(`recipe.json carregado: ${quantidade} receitas disponíveis.`);
+    mostrarAviso('catalogo-carregado', { quantidade });
   } catch (erro) {
     console.error('Não foi possível carregar recipe.json da raiz do jogo:', erro);
-    mostrarAviso(`Falha ao carregar recipe.json: ${erro.message || 'verifique se o arquivo está na raiz do site.'}`);
+    mostrarAviso('falha-catalogo', { erro: erro.message || 'verifique se o arquivo está na raiz do site.' });
   } finally {
     clearTimeout(timeout);
   }
@@ -2473,7 +2552,7 @@ $('#hist-btn').onclick = () => {
 $('#limpar-hist-btn').onclick = () => {
   historico = [];
   $('#modal-hist').close();
-  mostrarAviso('Histórico limpo.');
+  mostrarAviso('historico-limpo');
 };
 $('#fechar-hist-btn').onclick = () => $('#modal-hist').close();
 
@@ -2491,7 +2570,7 @@ $('#confirmar-reset-btn').onclick = () => {
   $('#modal-reset').close();
   atualizarPainel();
   atualizarDicaCentral();
-  mostrarAviso('Laboratório reiniciado.');
+  mostrarAviso('laboratorio-reiniciado');
 };
 
 // =========================================================================
