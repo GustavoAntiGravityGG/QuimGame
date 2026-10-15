@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "exportedAt": "2026-10-14T17:43:22.000Z",
+  "exportedAt": "2026-10-15T08:20:00.213Z",
   "elements": [
     {
       "number": 1,
@@ -3517,21 +3517,21 @@
           "a": "c19h21n15o4",
           "b": "c19h21n15o4",
           "productId": "chno",
-          "name": "RNA",
-          "formula": "C-H-N-O",
+          "name": "DNA",
+          "formula": "C-H-N-O2",
           "icon": "🧬",
-          "equation": "",
+          "equation": "hélice + hélice  → DNA",
           "category": "acidos"
         },
         {
-          "uid": "recipe-1791999608283-n4vjqw",
+          "uid": "recipe-1792052385538-remdvl",
           "a": "c19h21n15o4",
           "b": "O",
-          "productId": "chno",
+          "productId": "chro2",
           "name": "RNA",
-          "formula": "C-H-N-O",
+          "formula": "C-H-R-O2",
           "icon": "🧬",
-          "equation": "",
+          "equation": "1 Hélice + O → RNA",
           "category": "acidos"
         }
       ]
